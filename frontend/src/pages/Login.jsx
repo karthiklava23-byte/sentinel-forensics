@@ -25,16 +25,6 @@ const Login = () => {
     }
   };
 
-  const setDemoUser = (role) => {
-    if (role === 'admin') {
-      setEmail('admin@cybertrace.io');
-      setPassword('admin123');
-    } else {
-      setEmail('investigator@cybertrace.io');
-      setPassword('investigator123');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#080b11] flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-[#0f1420] border border-cyan-500/30 rounded-2xl shadow-cyber-glow p-8 space-y-6">
