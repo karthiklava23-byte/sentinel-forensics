@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, Lock, Mail, Terminal } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { BRAND_CONFIG } from '../config/brand';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -33,9 +34,9 @@ const Login = () => {
             <Shield className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-mono font-bold tracking-wider text-slate-100">
-            CYBER<span className="text-cyan-400">TRACE</span> AI
+            {BRAND_CONFIG.shortName} <span className="text-cyan-400">{BRAND_CONFIG.accentText}</span>
           </h1>
-          <p className="text-xs font-mono text-slate-400">DIGITAL FORENSICS & INCIDENT RESPONSE PLATFORM</p>
+          <p className="text-xs font-mono text-slate-400 uppercase">{BRAND_CONFIG.tagline}</p>
         </div>
 
         {error && (

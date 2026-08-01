@@ -24,16 +24,30 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+import MobileBottomNav from './components/MobileBottomNav';
+
 const MainLayout = ({ children }) => {
+  const [viewMode, setViewModeState] = React.useState(() => {
+    return localStorage.getItem('sentinel_view_mode') || (window.innerWidth < 768 ? 'mobile' : 'pc');
+  });
+
+  const setViewMode = (mode) => {
+    setViewModeState(mode);
+    localStorage.setItem('sentinel_view_mode', mode);
+  };
+
+  const isMobile = viewMode === 'mobile';
+
   return (
     <div className="min-h-screen flex flex-col bg-[#080b11] relative">
-      <Navbar />
+      <Navbar viewMode={viewMode} setViewMode={setViewMode} />
       <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 bg-[#0b0f19]/80 overflow-y-auto pb-16">
+        {!isMobile && <Sidebar />}
+        <main className={`flex-1 bg-[#0b0f19]/80 overflow-y-auto ${isMobile ? 'pb-24 px-2' : 'pb-16'}`}>
           {children}
         </main>
       </div>
+      {isMobile && <MobileBottomNav />}
       <GeminiCopilotFloatingWidget />
     </div>
   );
