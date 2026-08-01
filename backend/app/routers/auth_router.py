@@ -9,27 +9,15 @@ from app.database import db
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
 def ensure_default_users():
-    admin = db.find_one("users", {"email": "admin@cybertrace.io"})
+    admin = db.find_one("users", {"email": "karthiklava23@gmail.com"})
     if not admin:
         db.insert_one("users", {
-            "id": str(uuid.uuid4()),
+            "id": "admin-karthiklava23",
             "username": "admin",
-            "email": "admin@cybertrace.io",
-            "password_hash": hash_password("admin123"),
-            "full_name": "Chief Security Officer",
+            "email": "karthiklava23@gmail.com",
+            "password_hash": hash_password("karthiklava23-byte"),
+            "full_name": "SENTINEL Lead Administrator",
             "role": UserRole.ADMIN,
-            "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "is_active": True
-        })
-    investigator = db.find_one("users", {"email": "investigator@cybertrace.io"})
-    if not investigator:
-        db.insert_one("users", {
-            "id": str(uuid.uuid4()),
-            "username": "lead_investigator",
-            "email": "investigator@cybertrace.io",
-            "password_hash": hash_password("investigator123"),
-            "full_name": "Lead DFIR Investigator",
-            "role": UserRole.INVESTIGATOR,
             "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "is_active": True
         })
@@ -41,6 +29,10 @@ def register(user_data: UserRegister):
     existing = db.find_one("users", {"email": user_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Prevent public users from registering as admin
+    if user_data.role and str(user_data.role).lower() in ["admin", "userrole.admin"]:
+        raise HTTPException(status_code=400, detail="Admin registration is restricted.")
         
     user_id = str(uuid.uuid4())
     new_user = {
@@ -49,7 +41,7 @@ def register(user_data: UserRegister):
         "email": user_data.email,
         "password_hash": hash_password(user_data.password),
         "full_name": user_data.full_name,
-        "role": user_data.role or UserRole.INVESTIGATOR,
+        "role": UserRole.INVESTIGATOR,
         "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "is_active": True
     }

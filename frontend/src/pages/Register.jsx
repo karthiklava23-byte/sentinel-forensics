@@ -113,7 +113,6 @@ const Register = () => {
             >
               <option value="investigator">Investigator / DFIR Specialist</option>
               <option value="analyst">SOC Forensic Analyst</option>
-              <option value="admin">System Admin</option>
             </select>
           </div>
 
