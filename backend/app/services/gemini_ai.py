@@ -138,7 +138,7 @@ def answer_investigator_question(question: str, case_context: Optional[str] = No
     # Fallback responses for platform services and DFIR questions
     fallback_answers = {
         "platform": (
-            "**CyberTrace AI Platform Overview & Services:**\n\n"
+            "**SENTINEL AI Platform Overview & Services:**\n\n"
             "1. **Email Forensics**: Upload `.EML` raw emails to inspect SPF/DKIM/DMARC headers, hop IPs, and executable attachments.\n"
             "2. **URL Threat Analysis**: Scan suspicious links for brand spoofing, domain registration age, WHOIS privacy, and IP hosting risk.\n"
             "3. **Network PCAP Forensics**: Parse `.PCAP` packet captures to reconstruct protocol flows, DNS queries, and C2 beaconing patterns.\n"
@@ -147,7 +147,7 @@ def answer_investigator_question(question: str, case_context: Optional[str] = No
             "6. **Gemini AI Correlation Engine**: Aggregates all 5 modules into unified attack timelines, natural language reports, and interactive assistant chat."
         ),
         "service": (
-            "CyberTrace AI provides 5 specialized forensic modules (Email, URL, Network PCAP, Malware, Threat Intelligence) "
+            "SENTINEL AI provides 5 specialized forensic modules (Email, URL, Network PCAP, Malware, Threat Intelligence) "
             "backed by the Gemini AI Correlation Engine for multi-vector threat timeline reconstruction and automated PDF report generation."
         ),
         "how to": (

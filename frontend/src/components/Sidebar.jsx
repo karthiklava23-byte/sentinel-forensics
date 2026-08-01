@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { BRAND_CONFIG } from '../config/brand';
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -79,7 +80,7 @@ const Sidebar = () => {
 
       {/* Footer info */}
       <div className="pt-4 border-t border-slate-800/80 text-[10px] font-mono text-slate-500 text-center">
-        <p>CYBERTRACE DFIR SYSTEM</p>
+        <p>{BRAND_CONFIG.shortName} DFIR SYSTEM</p>
         <p className="text-[9px] text-slate-600">CLASSIFIED INVESTIGATION TOOL</p>
       </div>
     </aside>
