@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  forensics-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forensics_app
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - SECRET_KEY=${SECRET_KEY:-cybertrace_secret_key_prod_2026}
+      - PROJECT_NAME="Digital Forensics Platform"
+    restart: always

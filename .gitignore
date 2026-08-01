@@ -1,0 +1,24 @@
+# Node dependencies & build outputs
+node_modules/
+dist/
+build/
+*.log
+
+# Python cache & virtualenv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+venv/
+env/
+ENV/
+
+# Environment & local secrets
+.env
+.env.local
+*.pem
+
+# Storage files
+*.pcap
+*.eml
