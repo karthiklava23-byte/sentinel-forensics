@@ -14,7 +14,7 @@ const api = axios.create({
 // Interceptor to attach JWT token to all outgoing requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('cybertrace_token');
+    const token = localStorage.getItem('sentinel_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -46,8 +46,13 @@ export const evidenceAPI = {
     api.post('/evidence/analyze-email', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  analyzeUrl: (url) =>
-    api.post(`/evidence/analyze-url?target_url=${encodeURIComponent(url)}`),
+  analyzeUrl: (url) => {
+    const fd = new FormData();
+    fd.append('url', url);
+    return api.post('/evidence/analyze-url', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   analyzePcap: (formData) =>
     api.post('/evidence/analyze-pcap', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

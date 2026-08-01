@@ -127,10 +127,27 @@ async def analyze_email_endpoint(file: UploadFile = File(...)):
 
 @router.post("/analyze-url")
 def analyze_url_endpoint(url: Optional[str] = Form(None), target_url: Optional[str] = Query(None)):
-    final_url = url or target_url or ""
-    if not final_url or not final_url.strip():
+    final_url = (url or target_url or "").strip()
+    if not final_url:
         raise HTTPException(status_code=400, detail="Target URL parameter is required.")
-    return analyze_url(final_url)
+    result = analyze_url(final_url)
+    # Sanitize all values to primitives to prevent React rendering errors
+    safe_result = {
+        "url": str(result.get("url", "")),
+        "domain": str(result.get("domain", "")),
+        "is_https": bool(result.get("is_https", False)),
+        "domain_age_days": int(result.get("domain_age_days", 0)),
+        "whois_registrar": str(result.get("whois_registrar", "Unknown")),
+        "creation_date": str(result.get("creation_date", "Unknown")),
+        "ip_address": str(result.get("ip_address", "N/A")),
+        "country": str(result.get("country", "N/A")),
+        "risk_score": int(result.get("risk_score", 0)),
+        "threat_level": str(result.get("threat_level", "UNKNOWN")),
+        "suspicious_features": [str(f) for f in (result.get("suspicious_features") or [])],
+        "phishing_indicator": bool(result.get("phishing_indicator", False)),
+        "reputation": str(result.get("reputation", "UNKNOWN")),
+    }
+    return safe_result
 
 
 @router.post("/analyze-pcap")

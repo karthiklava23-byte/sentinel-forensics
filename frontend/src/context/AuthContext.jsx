@@ -3,9 +3,11 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
+const TOKEN_KEY = 'sentinel_token';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('cybertrace_token') || null);
+  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const res = await authAPI.login(email, password);
     const { access_token, user: userData } = res.data;
-    localStorage.setItem('cybertrace_token', access_token);
+    localStorage.setItem(TOKEN_KEY, access_token);
     setToken(access_token);
     setUser(userData);
     return userData;
@@ -39,7 +41,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('cybertrace_token');
+    localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
   };
