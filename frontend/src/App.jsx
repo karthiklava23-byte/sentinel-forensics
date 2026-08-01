@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import GeminiCopilotFloatingWidget from './components/GeminiCopilotFloatingWidget';
+import MobileBottomNav from './components/MobileBottomNav';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -24,10 +25,8 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-import MobileBottomNav from './components/MobileBottomNav';
-
 const MainLayout = ({ children }) => {
-  const [viewMode, setViewModeState] = React.useState(() => {
+  const [viewMode, setViewModeState] = useState(() => {
     return localStorage.getItem('sentinel_view_mode') || (window.innerWidth < 768 ? 'mobile' : 'pc');
   });
 
