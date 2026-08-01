@@ -53,25 +53,24 @@ const EmailForensicsPage = () => {
             </div>
           )}
 
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="flex-1 w-full">
-              <label className="block text-slate-400 mb-1">UPLOAD .EML FILE</label>
+          <div className="flex flex-col gap-4">
+            <div className="w-full">
+              <label className="block text-slate-400 mb-2">UPLOAD .EML FILE</label>
               <input
                 type="file"
                 accept=".eml,.msg"
                 onChange={(e) => setFile(e.target.files[0])}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-950 file:text-cyan-400"
+                className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-3 text-slate-300 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-950 file:text-cyan-400 cursor-pointer"
               />
+              {file && <p className="text-[11px] text-emerald-400 mt-1.5">✓ Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)</p>}
             </div>
-            <div className="flex items-center gap-3 mt-4 md:mt-0">
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded shadow-cyber-glow transition-all"
-              >
-                {loading ? 'PARSING EML...' : 'PARSE & ANALYZE EMAIL'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full sm:w-auto px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded shadow-cyber-glow transition-all text-sm"
+            >
+              {loading ? 'PARSING EML...' : 'PARSE & ANALYZE EMAIL'}
+            </button>
           </div>
         </form>
       </div>
@@ -120,7 +119,7 @@ const EmailForensicsPage = () => {
               <ShieldCheck className="w-4 h-4 text-cyan-400" />
               EMAIL AUTHENTICATION CHECKS
             </h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className={`p-4 rounded-lg border flex items-center justify-between ${
                 result.spf_status === 'PASS' ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400' : 'bg-rose-950/40 border-rose-500/40 text-rose-400'
               }`}>
@@ -191,9 +190,9 @@ const EmailForensicsPage = () => {
 
           {/* Attachment Inspection */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-200 uppercase">EMBEDDED ATTACHMENTS ({result.attachments.length})</h4>
+            <h4 className="text-xs font-bold text-slate-200 uppercase">EMBEDDED ATTACHMENTS ({(result.attachments || []).length})</h4>
             <div className="space-y-2">
-              {result.attachments.map((att, idx) => (
+              {(result.attachments || []).map((att, idx) => (
                 <div key={idx} className="p-3 bg-slate-900/80 border border-slate-800 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
