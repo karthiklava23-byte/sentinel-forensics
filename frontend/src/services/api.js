@@ -46,13 +46,8 @@ export const evidenceAPI = {
     api.post('/evidence/analyze-email', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  analyzeUrl: (url) => {
-    const formData = new FormData();
-    formData.append('url', url);
-    return api.post('/evidence/analyze-url', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
+  analyzeUrl: (url) =>
+    api.post(`/evidence/analyze-url?target_url=${encodeURIComponent(url)}`),
   analyzePcap: (formData) =>
     api.post('/evidence/analyze-pcap', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

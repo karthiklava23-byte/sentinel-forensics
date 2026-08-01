@@ -126,8 +126,11 @@ async def analyze_email_endpoint(file: UploadFile = File(...)):
 
 
 @router.post("/analyze-url")
-def analyze_url_endpoint(url: str = Form(...)):
-    return analyze_url(url)
+def analyze_url_endpoint(url: Optional[str] = Form(None), target_url: Optional[str] = Query(None)):
+    final_url = url or target_url or ""
+    if not final_url or not final_url.strip():
+        raise HTTPException(status_code=400, detail="Target URL parameter is required.")
+    return analyze_url(final_url)
 
 
 @router.post("/analyze-pcap")
