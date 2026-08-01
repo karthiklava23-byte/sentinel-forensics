@@ -109,17 +109,17 @@ const UrlForensicsPage = () => {
 
             <div>
               <span className="text-slate-500 text-[10px]">DOMAIN AGE:</span>
-              <p className="text-slate-200 font-bold">{result.domain_age_days} days old</p>
+              <p className="text-slate-200 font-bold">{String(result.domain_age_days || 0)} days old</p>
             </div>
 
             <div>
               <span className="text-slate-500 text-[10px]">RESOLVED IP:</span>
-              <p className="text-cyan-400 font-bold">{result.ip_address} ({result.country})</p>
+              <p className="text-cyan-400 font-bold">{String(result.ip_address || 'N/A')} ({String(result.country || 'US')})</p>
             </div>
 
             <div>
               <span className="text-slate-500 text-[10px]">REPUTATION SCORE:</span>
-              <p className="text-rose-400 font-bold truncate">{result.reputation}</p>
+              <p className="text-rose-400 font-bold truncate">{String(result.reputation || 'UNKNOWN')}</p>
             </div>
           </div>
 
@@ -127,8 +127,8 @@ const UrlForensicsPage = () => {
           <div className="p-4 bg-slate-900/40 rounded-lg border border-slate-800 space-y-2">
             <h4 className="text-xs font-bold text-slate-200 uppercase">WHOIS REGISTRATION METADATA</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-300">
-              <div><span className="text-slate-500">REGISTRAR:</span> {result.whois_registrar}</div>
-              <div><span className="text-slate-500">REGISTRATION DATE:</span> {result.creation_date}</div>
+              <div><span className="text-slate-500">REGISTRAR:</span> {typeof result.whois_registrar === 'object' ? JSON.stringify(result.whois_registrar) : String(result.whois_registrar || 'N/A')}</div>
+              <div><span className="text-slate-500">REGISTRATION DATE:</span> {typeof result.creation_date === 'object' ? JSON.stringify(result.creation_date) : String(result.creation_date || 'N/A')}</div>
             </div>
           </div>
 
@@ -144,7 +144,7 @@ const UrlForensicsPage = () => {
                 (result?.suspicious_features || []).map((feat, idx) => (
                   <div key={idx} className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-lg text-amber-300 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>{feat}</span>
+                    <span>{typeof feat === 'object' ? (feat.details || feat.feature || JSON.stringify(feat)) : String(feat)}</span>
                   </div>
                 ))
               ) : (
