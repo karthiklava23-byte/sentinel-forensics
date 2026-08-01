@@ -23,14 +23,18 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
-import { analyticsAPI } from '../services/api';
+import { analyticsAPI, adminAPI } from '../services/api';
 import ThreatBadge from '../components/ThreatBadge';
 import CaseModal from '../components/CaseModal';
 import GeminiChatModal from '../components/GeminiChatModal';
 import { MessageSquare, Bot } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [data, setData] = useState(null);
+  const [adminLogs, setAdminLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCaseModalOpen, setIsCaseModalOpen] = useState(false);
   const [isChatModalOpen, setIsChatModalOpen] = useState(false);
@@ -44,6 +48,13 @@ const Dashboard = () => {
     try {
       const res = await analyticsAPI.getDashboardMetrics();
       setData(res.data);
+      // Fetch audit logs separately — admin only
+      if (user?.role === 'admin') {
+        try {
+          const logsRes = await adminAPI.getLogs();
+          setAdminLogs(logsRes.data || []);
+        } catch (_) { /* non-admin: silently skip */ }
+      }
     } catch (err) {
       console.error("Dashboard error:", err);
     } finally {
@@ -62,7 +73,7 @@ const Dashboard = () => {
     );
   }
 
-  const { metrics, threat_distribution, evidence_type_breakdown, recent_cases, recent_logs, malware_stats, threat_intel_stats } = data;
+  const { metrics, threat_distribution, evidence_type_breakdown, recent_cases, malware_stats, threat_intel_stats } = data;
 
   const pieData = [
     { name: 'CRITICAL', value: threat_distribution.CRITICAL, color: '#ff2a6d' },
@@ -444,25 +455,31 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Audit Log Stream (1 col) */}
-        <div className="cyber-card p-5 rounded-xl border border-slate-800">
-          <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            FORENSIC AUDIT LOGS
-          </h3>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-            {recent_logs.map((log, idx) => (
-              <div key={log.id || idx} className="p-2.5 rounded bg-slate-900/60 border border-slate-800/80 text-[11px]">
-                <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                  <span className="text-cyan-400 font-semibold">{log.action}</span>
-                  <span>{log.timestamp}</span>
+        {/* Audit Log Stream — ADMIN ONLY */}
+        {isAdmin && (
+          <div className="cyber-card p-5 rounded-xl border border-slate-800">
+            <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              FORENSIC AUDIT LOGS
+              <span className="ml-auto text-[10px] px-2 py-0.5 bg-amber-950 border border-amber-700/50 text-amber-400 rounded font-mono">ADMIN ONLY</span>
+            </h3>
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              {adminLogs.slice(0, 10).map((log, idx) => (
+                <div key={log.id || idx} className="p-2.5 rounded bg-slate-900/60 border border-slate-800/80 text-[11px]">
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+                    <span className="text-cyan-400 font-semibold">{log.action}</span>
+                    <span>{log.timestamp}</span>
+                  </div>
+                  <p className="text-slate-300 leading-snug">{log.details}</p>
+                  <p className="text-[9px] text-slate-500 mt-1">BY: {log.user_email}</p>
                 </div>
-                <p className="text-slate-300 leading-snug">{log.details}</p>
-                <p className="text-[9px] text-slate-500 mt-1">BY: {log.user_email}</p>
-              </div>
-            ))}
+              ))}
+              {adminLogs.length === 0 && (
+                <p className="text-slate-600 text-[11px]">No audit log entries yet.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <CaseModal

@@ -8,7 +8,6 @@ router = APIRouter(prefix="/api/analytics", tags=["Dashboard & Analytics"])
 def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
     cases     = db.find_many("cases")
     evidences = db.find_many("evidence")
-    logs      = db.find_many("logs")
 
     total_cases    = len(cases)
     open_cases     = len([c for c in cases if c.get("status") in ["OPEN", "IN_PROGRESS"]])
@@ -87,8 +86,6 @@ def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
     }
 
     # ── Sort and return ────────────────────────────────────────────────────────
-    sorted_logs = sorted(logs, key=lambda x: x.get("timestamp", ""), reverse=True)[:10]
-
     return {
         "metrics": {
             "total_cases":              total_cases,
@@ -105,6 +102,5 @@ def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
         "evidence_type_breakdown": evidence_type_breakdown,
         "malware_stats":           malware_stats,
         "threat_intel_stats":      threat_intel_stats,
-        "recent_logs":             sorted_logs,
         "recent_cases":            sorted(cases, key=lambda x: x.get("updated_at", ""), reverse=True)[:5]
     }
