@@ -25,6 +25,8 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 const MainLayout = ({ children }) => {
   const [viewMode, setViewModeState] = useState(() => {
     return localStorage.getItem('sentinel_view_mode') || (window.innerWidth < 768 ? 'mobile' : 'pc');
@@ -43,7 +45,9 @@ const MainLayout = ({ children }) => {
       <div className="flex flex-1">
         {!isMobile && <Sidebar />}
         <main className={`flex-1 bg-[#0b0f19]/80 overflow-y-auto ${isMobile ? 'pb-24 px-2' : 'pb-16'}`}>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </main>
       </div>
       {isMobile && <MobileBottomNav />}

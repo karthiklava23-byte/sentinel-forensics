@@ -136,16 +136,23 @@ const UrlForensicsPage = () => {
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-slate-200 uppercase flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-amber-400" />
-              HEURISTIC THREAT INDICATORS DETECTED ({result.suspicious_features.length})
+              HEURISTIC THREAT INDICATORS DETECTED ({(result?.suspicious_features || []).length})
             </h4>
 
             <div className="space-y-2">
-              {result.suspicious_features.map((feat, idx) => (
-                <div key={idx} className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-lg text-amber-300 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>{feat}</span>
+              {(result?.suspicious_features || []).length > 0 ? (
+                (result?.suspicious_features || []).map((feat, idx) => (
+                  <div key={idx} className="p-3 bg-amber-950/30 border border-amber-500/30 rounded-lg text-amber-300 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>{feat}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 bg-emerald-950/30 border border-emerald-500/30 rounded-lg text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>No suspicious URL heuristics detected. Domain appears legitimate.</span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
