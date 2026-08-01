@@ -30,6 +30,10 @@ def register(user_data: UserRegister):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    existing_username = db.find_one("users", {"username": user_data.username})
+    if existing_username:
+        raise HTTPException(status_code=400, detail="Username handle is already taken.")
+
     # Prevent public users from registering as admin
     if user_data.role and str(user_data.role).lower() in ["admin", "userrole.admin"]:
         raise HTTPException(status_code=400, detail="Admin registration is restricted.")
