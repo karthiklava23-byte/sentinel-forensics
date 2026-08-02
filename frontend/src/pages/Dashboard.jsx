@@ -26,8 +26,6 @@ import {
 import { analyticsAPI, adminAPI } from '../services/api';
 import ThreatBadge from '../components/ThreatBadge';
 import CaseModal from '../components/CaseModal';
-import GeminiChatModal from '../components/GeminiChatModal';
-import { MessageSquare, Bot } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
@@ -37,19 +35,18 @@ const Dashboard = () => {
   const [adminLogs, setAdminLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCaseModalOpen, setIsCaseModalOpen] = useState(false);
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchDashboard();
-  }, []);
+    fetchDashboard(user);
+  }, [user]);
 
-  const fetchDashboard = async () => {
+  const fetchDashboard = async (currentUser) => {
     try {
       const res = await analyticsAPI.getDashboardMetrics();
       setData(res.data);
       // Fetch audit logs separately — admin only
-      if (user?.role === 'admin') {
+      if (currentUser?.role === 'admin') {
         try {
           const logsRes = await adminAPI.getLogs();
           setAdminLogs(logsRes.data || []);
@@ -73,7 +70,7 @@ const Dashboard = () => {
     );
   }
 
-  const { metrics, threat_distribution, evidence_type_breakdown, recent_cases, recent_scans = [], malware_stats, threat_intel_stats, is_admin_view } = data;
+  const { metrics = {}, threat_distribution = {}, evidence_type_breakdown = {}, recent_cases = [], recent_scans = [], malware_stats = {}, threat_intel_stats = {}, is_admin_view } = data || {};
 
   const pieData = [
     { name: 'CRITICAL', value: threat_distribution.CRITICAL, color: '#ff2a6d' },
@@ -101,7 +98,7 @@ const Dashboard = () => {
           </div>
           <div>
             <p className="text-xs font-mono font-bold text-cyan-300">{user?.full_name || user?.email}</p>
-            <p className="text-[10px] text-slate-500 font-mono">MY PERSONAL DASHBOARD — showing your cases, evidence &amp; scans only</p>
+            <p className="text-[10px] text-slate-500 font-mono">MY PERSONAL DASHBOARD &mdash; showing your cases, evidence &amp; scans only</p>
           </div>
           <span className="ml-auto text-[10px] font-mono px-2 py-1 bg-cyan-950 border border-cyan-700/40 text-cyan-400 rounded">{user?.role?.toUpperCase() || 'USER'}</span>
         </div>
