@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from app.auth import get_current_user
 from app.database import db
 
@@ -6,8 +6,22 @@ router = APIRouter(prefix="/api/analytics", tags=["Dashboard & Analytics"])
 
 @router.get("/dashboard")
 def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
-    cases     = db.find_many("cases")
-    evidences = db.find_many("evidence")
+    is_admin = current_user.get("role") == "admin"
+    user_email = current_user.get("email", "")
+
+    all_cases     = db.find_many("cases")
+    all_evidences = db.find_many("evidence")
+    all_scans     = db.find_many("user_scans")
+
+    # Scope data: admin sees everything, regular users see only their own
+    if is_admin:
+        cases     = all_cases
+        evidences = all_evidences
+        scans     = all_scans
+    else:
+        cases     = [c for c in all_cases     if c.get("created_by") == user_email]
+        evidences = [e for e in all_evidences if e.get("uploaded_by") == user_email]
+        scans     = [s for s in all_scans     if s.get("user_email") == user_email]
 
     total_cases    = len(cases)
     open_cases     = len([c for c in cases if c.get("status") in ["OPEN", "IN_PROGRESS"]])
@@ -30,30 +44,26 @@ def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
     }
 
     # ── Malware Forensics Statistics ──────────────────────────────────────────
-    malware_evidences  = [e for e in evidences if e.get("type") == "MALWARE"]
-    malware_results    = [e.get("analysis_result", {}) for e in malware_evidences]
-    high_risk_malware  = len([r for r in malware_results if r.get("malware_risk_score", 0) >= 70])
-    avg_entropy        = round(
+    malware_evidences = [e for e in evidences if e.get("type") == "MALWARE"]
+    malware_results   = [e.get("analysis_result", {}) for e in malware_evidences]
+    high_risk_malware = len([r for r in malware_results if r.get("malware_risk_score", 0) >= 70])
+    avg_entropy       = round(
         sum(r.get("entropy", 0) for r in malware_results) / len(malware_results), 2
     ) if malware_results else 0.0
-    total_api_flags    = sum(len(r.get("suspicious_api_calls", [])) for r in malware_results)
-    packed_samples     = len([r for r in malware_results if r.get("is_packed")])
+    total_api_flags   = sum(len(r.get("suspicious_api_calls", [])) for r in malware_results)
+    packed_samples    = len([r for r in malware_results if r.get("is_packed")])
 
-    malware_families_all = []
-    for r in malware_results:
-        fam = r.get("malware_family_hint")
-        if fam:
-            malware_families_all.append(fam)
+    malware_families_all = [r.get("malware_family_hint") for r in malware_results if r.get("malware_family_hint")]
     unique_malware_families = list(set(malware_families_all))
 
     malware_stats = {
-        "total_samples_analyzed": len(malware_evidences),
-        "high_risk_count": high_risk_malware,
-        "avg_entropy": avg_entropy,
-        "packed_samples": packed_samples,
+        "total_samples_analyzed":  len(malware_evidences),
+        "high_risk_count":         high_risk_malware,
+        "avg_entropy":             avg_entropy,
+        "packed_samples":          packed_samples,
         "total_flagged_api_calls": total_api_flags,
         "detected_malware_families": unique_malware_families[:5],
-        "critical_malware": len([r for r in malware_results if r.get("threat_level") == "CRITICAL"])
+        "critical_malware":        len([r for r in malware_results if r.get("threat_level") == "CRITICAL"])
     }
 
     # ── Threat Intelligence Statistics ────────────────────────────────────────
@@ -62,31 +72,27 @@ def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
         ti_results = enrich_iocs_from_evidence(evidences)
         ti_summary = get_threat_intel_summary(ti_results)
     except Exception:
-        ti_results = []
         ti_summary = {
-            "total_iocs_checked": 0,
-            "malicious_count": 0,
-            "suspicious_count": 0,
-            "clean_count": 0,
-            "unique_malware_families": [],
-            "known_attack_campaigns": [],
-            "overall_severity": "LOW",
-            "critical_iocs": []
+            "total_iocs_checked": 0, "malicious_count": 0, "suspicious_count": 0,
+            "clean_count": 0, "unique_malware_families": [], "known_attack_campaigns": [],
+            "overall_severity": "LOW", "critical_iocs": []
         }
 
     threat_intel_stats = {
-        "total_iocs_queried":         ti_summary.get("total_iocs_checked", 0),
-        "malicious_ioc_count":        ti_summary.get("malicious_count", 0),
-        "suspicious_ioc_count":       ti_summary.get("suspicious_count", 0),
-        "clean_ioc_count":            ti_summary.get("clean_count", 0),
-        "active_malware_families":    ti_summary.get("unique_malware_families", [])[:5],
-        "active_attack_campaigns":    ti_summary.get("known_attack_campaigns", [])[:5],
-        "overall_ti_severity":        ti_summary.get("overall_severity", "LOW"),
-        "critical_ioc_list":          ti_summary.get("critical_iocs", [])[:5]
+        "total_iocs_queried":      ti_summary.get("total_iocs_checked", 0),
+        "malicious_ioc_count":     ti_summary.get("malicious_count", 0),
+        "suspicious_ioc_count":    ti_summary.get("suspicious_count", 0),
+        "clean_ioc_count":         ti_summary.get("clean_count", 0),
+        "active_malware_families": ti_summary.get("unique_malware_families", [])[:5],
+        "active_attack_campaigns": ti_summary.get("known_attack_campaigns", [])[:5],
+        "overall_ti_severity":     ti_summary.get("overall_severity", "LOW"),
+        "critical_ioc_list":       ti_summary.get("critical_iocs", [])[:5]
     }
 
-    # ── Sort and return ────────────────────────────────────────────────────────
+    recent_scans = sorted(scans, key=lambda x: x.get("scanned_at", ""), reverse=True)[:10]
+
     return {
+        "is_admin_view": is_admin,
         "metrics": {
             "total_cases":              total_cases,
             "open_cases":               open_cases,
@@ -97,10 +103,31 @@ def get_dashboard_metrics(current_user: dict = Depends(get_current_user)):
             "malware_samples_analyzed": len(malware_evidences),
             "threat_intel_queries":     ti_summary.get("total_iocs_checked", 0),
             "malicious_iocs_flagged":   ti_summary.get("malicious_count", 0),
+            "total_scans":              len(scans),
         },
         "threat_distribution":     threat_distribution,
         "evidence_type_breakdown": evidence_type_breakdown,
         "malware_stats":           malware_stats,
         "threat_intel_stats":      threat_intel_stats,
+        "recent_scans":            recent_scans,
         "recent_cases":            sorted(cases, key=lambda x: x.get("updated_at", ""), reverse=True)[:5]
+    }
+
+
+@router.get("/user-summary/{user_email}")
+def get_user_summary(user_email: str, current_user: dict = Depends(get_current_user)):
+    """Admin endpoint: get any specific user's personal dashboard metrics."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    cases     = [c for c in db.find_many("cases")      if c.get("created_by") == user_email]
+    evidences = [e for e in db.find_many("evidence")   if e.get("uploaded_by") == user_email]
+    scans     = [s for s in db.find_many("user_scans") if s.get("user_email") == user_email]
+    return {
+        "user_email":     user_email,
+        "total_cases":    len(cases),
+        "total_evidence": len(evidences),
+        "total_scans":    len(scans),
+        "recent_cases":   sorted(cases,     key=lambda x: x.get("updated_at", ""),  reverse=True)[:5],
+        "recent_scans":   sorted(scans,     key=lambda x: x.get("scanned_at", ""),  reverse=True)[:10],
+        "recent_evidence":sorted(evidences, key=lambda x: x.get("uploaded_at", ""), reverse=True)[:5],
     }

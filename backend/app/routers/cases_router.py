@@ -15,9 +15,14 @@ def get_cases(
     priority: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    cases = db.find_many("cases")
+    is_admin = current_user.get("role") == "admin"
+    user_email = current_user.get("email", "")
+    all_cases = db.find_many("cases")
+    # Non-admins only see cases they created
+    if not is_admin:
+        all_cases = [c for c in all_cases if c.get("created_by") == user_email]
     filtered = []
-    for c in cases:
+    for c in all_cases:
         if status and c.get("status") != status:
             continue
         if priority and c.get("priority") != priority:
@@ -81,13 +86,12 @@ def get_case_detail(case_id: str, current_user: dict = Depends(get_current_user)
     case = db.find_one("cases", {"id": case_id})
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
-        
+    is_admin = current_user.get("role") == "admin"
+    if not is_admin and case.get("created_by") != current_user.get("email"):
+        raise HTTPException(status_code=403, detail="Access denied: you do not own this case")
     evidence_list = db.find_many("evidence", {"case_id": case_id})
-    
-    # Run AI Correlation on demand if evidence exists
     from app.services.ai_correlation import correlate_case_evidence
     ai_report = correlate_case_evidence(case_id, case, evidence_list)
-    
     return {
         "case": case,
         "evidence": evidence_list,
@@ -119,6 +123,9 @@ def delete_case(case_id: str, current_user: dict = Depends(get_current_user)):
     case = db.find_one("cases", {"id": case_id})
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
+    is_admin = current_user.get("role") == "admin"
+    if not is_admin and case.get("created_by") != current_user.get("email"):
+        raise HTTPException(status_code=403, detail="Access denied: you do not own this case")
         
     db.delete_one("cases", {"id": case_id})
     # delete associated evidence

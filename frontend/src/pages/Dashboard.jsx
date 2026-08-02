@@ -73,7 +73,7 @@ const Dashboard = () => {
     );
   }
 
-  const { metrics, threat_distribution, evidence_type_breakdown, recent_cases, malware_stats, threat_intel_stats } = data;
+  const { metrics, threat_distribution, evidence_type_breakdown, recent_cases, recent_scans = [], malware_stats, threat_intel_stats, is_admin_view } = data;
 
   const pieData = [
     { name: 'CRITICAL', value: threat_distribution.CRITICAL, color: '#ff2a6d' },
@@ -92,6 +92,34 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6 font-sans">
+
+      {/* Personal Identity Banner */}
+      {!is_admin_view && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-cyan-950/30 border border-cyan-800/40 rounded-xl">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+            {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+          </div>
+          <div>
+            <p className="text-xs font-mono font-bold text-cyan-300">{user?.full_name || user?.email}</p>
+            <p className="text-[10px] text-slate-500 font-mono">MY PERSONAL DASHBOARD — showing your cases, evidence &amp; scans only</p>
+          </div>
+          <span className="ml-auto text-[10px] font-mono px-2 py-1 bg-cyan-950 border border-cyan-700/40 text-cyan-400 rounded">{user?.role?.toUpperCase() || 'USER'}</span>
+        </div>
+      )}
+      {is_admin_view && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-amber-950/30 border border-amber-700/40 rounded-xl">
+          <ShieldAlert className="w-5 h-5 text-amber-400" />
+          <div>
+            <p className="text-xs font-mono font-bold text-amber-300">GLOBAL ADMIN VIEW</p>
+            <p className="text-[10px] text-slate-500 font-mono">Showing all users' combined data across the entire platform</p>
+          </div>
+          <button
+            onClick={() => navigate('/admin/users')}
+            className="ml-auto text-[10px] font-mono px-3 py-1.5 bg-amber-950 border border-amber-700/50 text-amber-400 rounded hover:bg-amber-900 transition-all"
+          >VIEW USER DASHBOARDS →</button>
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
@@ -99,7 +127,7 @@ const Dashboard = () => {
             CYBER INCIDENT COMMAND CENTER
           </h1>
           <p className="text-xs font-mono text-slate-400">
-            Real-time Threat Correlation, Evidence Processing & Forensic Analytics
+            Real-time Threat Correlation, Evidence Processing &amp; Forensic Analytics
           </p>
         </div>
 
@@ -113,6 +141,7 @@ const Dashboard = () => {
           </button>
         </div>
       </div>
+
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -455,6 +484,38 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* My Scan History — visible to all users for their own scans */}
+        <div className="cyber-card p-5 rounded-xl border border-slate-800">
+          <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-cyan-400" />
+            {is_admin_view ? 'RECENT PLATFORM SCANS' : 'MY SCAN HISTORY'}
+            <span className="ml-auto text-[10px] px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 rounded font-mono">
+              {(recent_scans || []).length} scans
+            </span>
+          </h3>
+          <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+            {(recent_scans || []).length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-slate-600 text-xs font-mono">No scans recorded yet.</p>
+                <p className="text-slate-700 text-[10px] mt-1">Scan a URL, email, or malware file to see results here.</p>
+              </div>
+            ) : (recent_scans || []).map((scan, idx) => {
+              const typeColors = { URL: 'text-blue-400 bg-blue-950/60 border-blue-800/50', EMAIL: 'text-cyan-400 bg-cyan-950/60 border-cyan-800/50', MALWARE: 'text-red-400 bg-red-950/60 border-red-800/50', PCAP: 'text-purple-400 bg-purple-950/60 border-purple-800/50' };
+              const riskColor = scan.risk_score >= 75 ? 'text-red-400' : scan.risk_score >= 50 ? 'text-orange-400' : scan.risk_score >= 25 ? 'text-yellow-400' : 'text-emerald-400';
+              return (
+                <div key={scan.id || idx} className="flex items-center gap-3 p-2.5 rounded bg-slate-900/60 border border-slate-800/80 text-[11px]">
+                  <span className={`shrink-0 px-2 py-0.5 rounded border font-mono font-bold text-[10px] ${typeColors[scan.scan_type] || 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+                    {scan.scan_type}
+                  </span>
+                  <span className="text-slate-300 truncate flex-1 font-mono">{scan.target}</span>
+                  <span className={`shrink-0 font-bold font-mono ${riskColor}`}>{scan.risk_score}%</span>
+                  <span className="shrink-0 text-[9px] text-slate-500">{scan.scanned_at?.slice(0, 16)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Audit Log Stream — ADMIN ONLY */}
         {isAdmin && (
           <div className="cyber-card p-5 rounded-xl border border-slate-800">
@@ -481,6 +542,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
 
       <CaseModal
         isOpen={isCaseModalOpen}

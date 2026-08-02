@@ -83,7 +83,8 @@ export const geminiAPI = {
 };
 
 export const analyticsAPI = {
-  getDashboardMetrics: () => api.get('/analytics/dashboard'),
+  getDashboardMetrics: ()          => api.get('/analytics/dashboard'),
+  getUserSummary:      (email)     => api.get(`/analytics/user-summary/${encodeURIComponent(email)}`),
 };
 
 export const adminAPI = {

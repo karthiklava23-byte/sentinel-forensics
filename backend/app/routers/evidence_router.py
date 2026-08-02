@@ -120,44 +120,89 @@ async def upload_evidence(
 
 
 @router.post("/analyze-email")
-async def analyze_email_endpoint(file: UploadFile = File(...)):
+async def analyze_email_endpoint(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
     content = await file.read()
-    return parse_eml_file(content, file.filename)
+    result = parse_eml_file(content, file.filename)
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.insert_one("user_scans", {
+        "id":         str(uuid.uuid4()),
+        "user_email": current_user["email"],
+        "scan_type":  "EMAIL",
+        "target":     file.filename,
+        "threat_level": str(result.get("threat_level", "UNKNOWN")),
+        "risk_score": int(result.get("phishing_score", 0)),
+        "scanned_at": now_str,
+    })
+    return result
 
 
 @router.post("/analyze-url")
-def analyze_url_endpoint(url: Optional[str] = Form(None), target_url: Optional[str] = Query(None)):
+def analyze_url_endpoint(
+    url: Optional[str] = Form(None),
+    target_url: Optional[str] = Query(None),
+    current_user: dict = Depends(get_current_user)
+):
     final_url = (url or target_url or "").strip()
     if not final_url:
         raise HTTPException(status_code=400, detail="Target URL parameter is required.")
     result = analyze_url(final_url)
-    # Sanitize all values to primitives to prevent React rendering errors
     safe_result = {
-        "url": str(result.get("url", "")),
-        "domain": str(result.get("domain", "")),
-        "is_https": bool(result.get("is_https", False)),
-        "domain_age_days": int(result.get("domain_age_days", 0)),
-        "whois_registrar": str(result.get("whois_registrar", "Unknown")),
-        "creation_date": str(result.get("creation_date", "Unknown")),
-        "ip_address": str(result.get("ip_address", "N/A")),
-        "country": str(result.get("country", "N/A")),
-        "risk_score": int(result.get("risk_score", 0)),
-        "threat_level": str(result.get("threat_level", "UNKNOWN")),
+        "url":               str(result.get("url", "")),
+        "domain":            str(result.get("domain", "")),
+        "is_https":          bool(result.get("is_https", False)),
+        "domain_age_days":   int(result.get("domain_age_days", 0)),
+        "whois_registrar":   str(result.get("whois_registrar", "Unknown")),
+        "creation_date":     str(result.get("creation_date", "Unknown")),
+        "ip_address":        str(result.get("ip_address", "N/A")),
+        "country":           str(result.get("country", "N/A")),
+        "risk_score":        int(result.get("risk_score", 0)),
+        "threat_level":      str(result.get("threat_level", "UNKNOWN")),
         "suspicious_features": [str(f) for f in (result.get("suspicious_features") or [])],
-        "phishing_indicator": bool(result.get("phishing_indicator", False)),
-        "reputation": str(result.get("reputation", "UNKNOWN")),
+        "phishing_indicator":bool(result.get("phishing_indicator", False)),
+        "reputation":        str(result.get("reputation", "UNKNOWN")),
     }
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.insert_one("user_scans", {
+        "id":         str(uuid.uuid4()),
+        "user_email": current_user["email"],
+        "scan_type":  "URL",
+        "target":     final_url,
+        "threat_level": safe_result["threat_level"],
+        "risk_score": safe_result["risk_score"],
+        "scanned_at": now_str,
+    })
     return safe_result
 
 
+
 @router.post("/analyze-pcap")
-async def analyze_pcap_endpoint(file: UploadFile = File(...)):
+async def analyze_pcap_endpoint(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
     content = await file.read()
-    return parse_pcap_file(content, file.filename)
+    result = parse_pcap_file(content, file.filename)
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.insert_one("user_scans", {
+        "id":         str(uuid.uuid4()),
+        "user_email": current_user["email"],
+        "scan_type":  "PCAP",
+        "target":     file.filename,
+        "threat_level": str(result.get("threat_level", "UNKNOWN")),
+        "risk_score": int(result.get("risk_score", 0)),
+        "scanned_at": now_str,
+    })
+    return result
 
 
 @router.post("/analyze-malware")
-async def analyze_malware_endpoint(file: UploadFile = File(...)):
+async def analyze_malware_endpoint(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
     filename = file.filename or "unknown_binary"
     ext = "." + filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext not in MALWARE_EXTENSIONS:
@@ -166,4 +211,15 @@ async def analyze_malware_endpoint(file: UploadFile = File(...)):
             detail=f"Unsupported file extension '{ext}'. Allowed: {', '.join(sorted(MALWARE_EXTENSIONS))}"
         )
     content = await file.read()
-    return analyze_malware_file(content, filename)
+    result = analyze_malware_file(content, filename)
+    now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.insert_one("user_scans", {
+        "id":         str(uuid.uuid4()),
+        "user_email": current_user["email"],
+        "scan_type":  "MALWARE",
+        "target":     filename,
+        "threat_level": str(result.get("threat_level", "UNKNOWN")),
+        "risk_score": int(result.get("malware_risk_score", 0)),
+        "scanned_at": now_str,
+    })
+    return result

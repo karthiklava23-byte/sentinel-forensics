@@ -17,6 +17,7 @@ import MalwareForensicsPage from './pages/MalwareForensicsPage';
 import ThreatIntelPage from './pages/ThreatIntelPage';
 import InvestigationReportPage from './pages/InvestigationReportPage';
 import AdminPanel from './pages/AdminPanel';
+import AdminUsersPage from './pages/AdminUsersPage';
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -178,6 +179,17 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <MainLayout>
               <AdminPanel />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <AdminUsersPage />
             </MainLayout>
           </ProtectedRoute>
         }

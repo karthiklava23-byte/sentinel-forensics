@@ -13,10 +13,11 @@ class MemoryStore:
     def __init__(self, data_file="forensics_storage.json"):
         self.data_file = data_file
         self.collections: Dict[str, Dict[str, dict]] = {
-            "users": {},
-            "cases": {},
-            "evidence": {},
-            "logs": {}
+            "users":      {},
+            "cases":      {},
+            "evidence":   {},
+            "logs":       {},
+            "user_scans": {}
         }
         self.load_from_disk()
 
