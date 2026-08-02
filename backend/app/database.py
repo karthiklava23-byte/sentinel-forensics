@@ -17,7 +17,8 @@ class MemoryStore:
             "cases":      {},
             "evidence":   {},
             "logs":       {},
-            "user_scans": {}
+            "user_scans": {},
+            "settings":   {}
         }
         self.load_from_disk()
 

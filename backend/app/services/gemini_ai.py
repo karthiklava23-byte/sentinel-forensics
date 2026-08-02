@@ -7,21 +7,35 @@ from app.config import settings
 GEMINI_API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 SYSTEM_PERSONA = (
-    "You are Gemini AI Investigation Assistant, an elite Digital Forensics and Incident Response (DFIR) analyst "
-    "embedded in the CyberTrace AI forensic investigation platform. Your role is to: "
-    "1) Analyze and summarize digital forensic evidence from email, URL, network traffic, malware, and threat intelligence modules. "
-    "2) Explain clearly WHY specific artifacts (emails, URLs, network packets, malware samples) are considered suspicious or malicious. "
-    "3) Correlate multi-source evidence into a coherent attack timeline. "
-    "4) Answer investigator questions in precise, professional language. "
-    "5) Recommend specific, actionable mitigation and remediation steps. "
-    "6) Generate detailed forensic investigation reports in natural language. "
-    "Always be precise, evidence-driven, and concise. Use DFIR and threat intelligence terminology."
+    "You are SENTINEL AI — an elite Digital Forensics and Incident Response (DFIR) assistant "
+    "embedded in the SENTINEL AI forensic investigation platform. You help investigators and security analysts with: "
+    "1) Analysing digital forensic evidence (email headers, suspicious URLs, network PCAPs, malware binaries, threat intel IOCs). "
+    "2) Explaining WHY specific artifacts are suspicious or malicious. "
+    "3) Correlating multi-source evidence into coherent attack timelines. "
+    "4) Answering ANY question related to cybersecurity, digital forensics, incident response, malware analysis, "
+    "network security, threat intelligence, MITRE ATT&CK, CVEs, and the SENTINEL AI platform features. "
+    "5) Recommending actionable mitigation and remediation steps. "
+    "6) Generating forensic investigation reports. "
+    "Be precise, professional, and helpful. If the question is about the platform itself, explain its features clearly. "
+    "If asked a general cybersecurity question, answer it thoroughly. Always be helpful — never refuse a relevant question."
 )
 
 
-def _call_gemini_api(prompt: str, max_tokens: int = 800) -> Optional[str]:
+def _get_api_key() -> str:
+    """Load Gemini API key from DB (persistent) or fall back to env config."""
+    try:
+        from app.database import db
+        stored = db.find_one("settings", {"key": "gemini_api_key"})
+        if stored and stored.get("value"):
+            return stored["value"]
+    except Exception:
+        pass
+    return settings.GEMINI_API_KEY or ""
+
+
+def _call_gemini_api(prompt: str, max_tokens: int = 1024) -> Optional[str]:
     """Call the Google Gemini API and return the response text."""
-    api_key = settings.GEMINI_API_KEY
+    api_key = _get_api_key()
     if not api_key:
         return None
     try:
@@ -29,18 +43,17 @@ def _call_gemini_api(prompt: str, max_tokens: int = 800) -> Optional[str]:
         payload = {
             "contents": [
                 {
-                    "parts": [
-                        {"text": f"{SYSTEM_PERSONA}\n\n{prompt}"}
-                    ]
+                    "role": "user",
+                    "parts": [{"text": f"{SYSTEM_PERSONA}\n\n{prompt}"}]
                 }
             ],
             "generationConfig": {
                 "maxOutputTokens": max_tokens,
-                "temperature": 0.3,
-                "topP": 0.8
+                "temperature": 0.4,
+                "topP": 0.9
             }
         }
-        resp = requests.post(url, json=payload, timeout=10)
+        resp = requests.post(url, json=payload, timeout=20)
         if resp.status_code == 200:
             data = resp.json()
             candidates = data.get("candidates", [])
@@ -48,10 +61,17 @@ def _call_gemini_api(prompt: str, max_tokens: int = 800) -> Optional[str]:
                 content = candidates[0].get("content", {})
                 parts = content.get("parts", [])
                 if parts:
-                    return parts[0].get("text", "")
-    except Exception:
-        pass
+                    return parts[0].get("text", "").strip()
+        elif resp.status_code == 400:
+            return f"[Gemini API Error] Bad request — check your API key format. Status: {resp.status_code}"
+        elif resp.status_code == 403:
+            return "[Gemini API Error] API key is invalid or has no access to Gemini 1.5 Flash. Please verify the key in Admin Settings."
+    except requests.exceptions.Timeout:
+        return "[Gemini API] Request timed out. The model may be slow — try again."
+    except Exception as e:
+        return f"[Gemini API Error] {str(e)}"
     return None
+
 
 
 def generate_correlation_insights(executive_summary: str, timeline: list, iocs: list, threat_score: int) -> str:
@@ -115,80 +135,139 @@ def generate_malware_explanation(malware_result: dict) -> str:
 
 
 def answer_investigator_question(question: str, case_context: Optional[str] = None) -> Dict[str, Any]:
-    """Answer an investigator's natural language question about the case."""
+    """Answer an investigator's natural language question about the case or platform."""
     context_block = f"\nCase Context:\n{case_context}\n" if case_context else ""
     prompt = (
-        f"{context_block}\n"
+        f"{context_block}"
         f"Investigator Question: {question}\n\n"
-        f"Provide a professional, precise answer from the perspective of a senior DFIR analyst. "
-        f"Include specific technical details, reference the evidence where applicable, and suggest follow-up investigation steps."
+        f"Provide a thorough, professional answer. Include specific technical details, "
+        f"reference forensic evidence or platform features where applicable, "
+        f"and suggest concrete follow-up steps. "
+        f"Format your answer clearly with bullet points or numbered lists where helpful."
     )
-    response = _call_gemini_api(prompt, max_tokens=500)
+
+    response = _call_gemini_api(prompt, max_tokens=1024)
 
     if response:
-        # Extract suggested actions if present
+        # If it's an API error message, pass it back clearly
+        if response.startswith("[Gemini API"):
+            return {
+                "answer": f"⚠️ {response}\n\nTo use the live AI assistant:\n• Go to **Admin Panel → Settings**\n• Enter your Google Gemini API key (get one free at https://aistudio.google.com/apikey)\n• Click Save",
+                "suggested_actions": [
+                    "Go to Admin Panel and enter your Gemini API key",
+                    "Get a free key at https://aistudio.google.com/apikey",
+                ],
+                "confidence": "N/A"
+            }
         lines = response.split('\n')
-        actions = [l.strip().lstrip('•-123456789. ') for l in lines if l.strip().startswith(('•', '-', '1.', '2.', '3.'))][:5]
+        actions = [l.strip().lstrip('•-*123456789. ') for l in lines if l.strip() and l.strip()[0] in ('•', '-', '*') or (len(l) > 2 and l[0].isdigit() and l[1] in '.)'  )][:5]
         return {
             "answer": response,
             "suggested_actions": actions,
             "confidence": "HIGH"
         }
 
-    # Fallback responses for platform services and DFIR questions
-    fallback_answers = {
-        "platform": (
-            "**SENTINEL AI Platform Overview & Services:**\n\n"
-            "1. **Email Forensics**: Upload `.EML` raw emails to inspect SPF/DKIM/DMARC headers, hop IPs, and executable attachments.\n"
-            "2. **URL Threat Analysis**: Scan suspicious links for brand spoofing, domain registration age, WHOIS privacy, and IP hosting risk.\n"
-            "3. **Network PCAP Forensics**: Parse `.PCAP` packet captures to reconstruct protocol flows, DNS queries, and C2 beaconing patterns.\n"
-            "4. **Malware Forensics**: Perform static analysis on `.EXE`, `.DLL`, `.APK` binaries — extract MD5/SHA256 hashes, Shannon entropy, imported DLLs, suspicious Win32 API calls, and calculate risk scores.\n"
-            "5. **Threat Intelligence**: Enrich case IOCs against global threat feeds (VirusTotal, AbuseIPDB, AlienVault OTX, MISP).\n"
-            "6. **Gemini AI Correlation Engine**: Aggregates all 5 modules into unified attack timelines, natural language reports, and interactive assistant chat."
-        ),
-        "service": (
-            "SENTINEL AI provides 5 specialized forensic modules (Email, URL, Network PCAP, Malware, Threat Intelligence) "
-            "backed by the Gemini AI Correlation Engine for multi-vector threat timeline reconstruction and automated PDF report generation."
-        ),
-        "how to": (
-            "To investigate a cyber incident:\n"
-            "• Click **'NEW INVESTIGATION CASE'** on the Dashboard or Cases page.\n"
-            "• Open the case and click **'ATTACH EVIDENCE'** to upload .EML files, .PCAP captures, phishing URLs, or .EXE/.DLL/.APK malware binaries.\n"
-            "• Review the **Gemini AI Correlation Engine** timeline and IOC table.\n"
-            "• Use **'Ask Gemini AI'** to chat with your AI assistant or click **'DOWNLOAD PDF REPORT'** for executive export."
-        ),
-        "phishing": "Based on email forensic analysis: SPF, DKIM, and DMARC authentication all failed, the sender domain was recently registered (<7 days), and the email contained executable attachments masquerading as document files — all high-confidence phishing indicators.",
-        "malware": "The binary exhibits high entropy (>7.0) indicating packing/encryption, imports process injection APIs (VirtualAllocEx, WriteProcessMemory, CreateRemoteThread), and communicates with known C2 infrastructure — consistent with a RAT or Beacon payload.",
-        "c2": "Network PCAP analysis shows regular-interval HTTP POST requests (beaconing pattern) to a non-standard port on a known-malicious external IP. DNS queries to attacker-controlled domains were also observed.",
-        "mitigate": "Immediate steps: 1) Isolate affected endpoints; 2) Block C2 IPs/domains at perimeter; 3) Force credential resets for affected accounts; 4) Deploy EDR for memory forensics; 5) Notify security leadership and legal team.",
-    }
+    # API key not configured — rich static fallback covering common questions
+    q = question.lower()
 
-    question_lower = question.lower()
-    for keyword, answer in fallback_answers.items():
-        if keyword in question_lower:
-            return {
-                "answer": answer,
-                "suggested_actions": [
-                    "Explore Email, URL, PCAP, Malware & Threat Intel modules",
-                    "Upload evidence artifacts to an active case",
-                    "Generate automated executive PDF investigation report"
-                ],
-                "confidence": "HIGH"
-            }
+    if any(k in q for k in ["platform", "service", "module", "feature", "what can", "what does"]):
+        answer = (
+            "**SENTINEL AI Platform — Available Forensic Modules:**\n\n"
+            "1. **📧 Email Forensics** — Upload `.EML` files to inspect SPF/DKIM/DMARC headers, sender IP hops, phishing indicators, and malicious attachments.\n"
+            "2. **🔗 URL Threat Analysis** — Scan any URL for brand spoofing, domain age, WHOIS data, resolved IP, and phishing risk score.\n"
+            "3. **🌐 Network PCAP Forensics** — Parse `.PCAP` captures to reconstruct protocol flows, DNS tunnelling, and C2 beaconing patterns.\n"
+            "4. **🦠 Malware Forensics** — Static analysis on `.EXE/.DLL/.APK/.PDF` — extracts MD5/SHA256, file entropy, imported DLLs, suspicious API calls, and risk score.\n"
+            "5. **🛡️ Threat Intelligence** — Enrich IOCs against global threat feeds.\n"
+            "6. **🤖 Gemini AI Correlation Engine** — Aggregates all modules into unified attack timelines and natural language reports.\n\n"
+            "**To activate live AI answers:** Go to Admin Panel → Settings → enter your Gemini API key."
+        )
+    elif any(k in q for k in ["phishing", "email", "spf", "dkim", "dmarc"]):
+        answer = (
+            "**Phishing Email Forensics Analysis:**\n\n"
+            "Key indicators of a phishing email:\n"
+            "• **SPF Fail** — Sender IP not authorised for the claimed domain.\n"
+            "• **DKIM Fail** — Email signature invalid or absent; message may be spoofed.\n"
+            "• **DMARC Fail** — Domain policy violated; indicates spoofing or misconfiguration.\n"
+            "• **Recent domain registration** (< 30 days) — Common phishing infrastructure.\n"
+            "• **Mismatched display name vs actual sender** — Classic social engineering.\n"
+            "• **Executable attachments** (.exe, .js, .vbs, .iso) — Likely malware delivery.\n\n"
+            "Upload the `.EML` file in the **Email Forensics** module for full automated analysis."
+        )
+    elif any(k in q for k in ["malware", "virus", "exe", "binary", "apk", "dll", "ransomware", "trojan"]):
+        answer = (
+            "**Malware Forensics — Static Analysis Overview:**\n\n"
+            "• **High Entropy (> 7.0)** — Indicates packing or encryption to evade AV detection.\n"
+            "• **Suspicious API Calls** — VirtualAllocEx, WriteProcessMemory, CreateRemoteThread = process injection; WinExec, ShellExecute = execution; RegSetValueEx = persistence.\n"
+            "• **PE Imports** — Unusual DLL imports like ws2_32.dll (networking) in a document tool suggests C2 capability.\n"
+            "• **Malware Families** — Identified via behavioral signatures (RAT, Ransomware, Dropper, Stealer, Beacon).\n\n"
+            "Upload the binary in the **Malware Forensics** module to get SHA-256, entropy score, behavioral flags, and risk score (0–100)."
+        )
+    elif any(k in q for k in ["url", "domain", "link", "website", "ip"]):
+        answer = (
+            "**URL / Domain Threat Analysis:**\n\n"
+            "• **Domain Age** — Newly registered domains (< 30 days) are high-risk phishing infrastructure.\n"
+            "• **WHOIS Privacy** — Hidden registrant details are common for malicious domains.\n"
+            "• **Suspicious TLDs** — .xyz, .top, .click, .tk are frequently abused.\n"
+            "• **Typosquatting** — Domains mimicking legitimate brands (e.g., paypa1.com vs paypal.com).\n"
+            "• **Resolved IP** — IPs on known blocklists or in high-abuse ASNs.\n\n"
+            "Enter any URL in the **URL Forensics** module for a live threat score, WHOIS data, and risk breakdown."
+        )
+    elif any(k in q for k in ["pcap", "network", "c2", "beacon", "packet", "dns", "traffic"]):
+        answer = (
+            "**Network PCAP Forensics:**\n\n"
+            "• **C2 Beaconing** — Regular-interval outbound HTTP/HTTPS/DNS requests to a fixed external IP/domain.\n"
+            "• **DNS Tunnelling** — Unusually long or encoded DNS query names used for data exfiltration.\n"
+            "• **Protocol Anomalies** — Unexpected protocols on standard ports (e.g., SSH traffic on port 80).\n"
+            "• **Large Outbound Transfers** — Potential data exfiltration events.\n"
+            "• **Known-Malicious IPs** — Connections to threat-intelligence-confirmed C2 infrastructure.\n\n"
+            "Upload a `.PCAP` file in the **Network Forensics** module for automated flow analysis."
+        )
+    elif any(k in q for k in ["mitigate", "contain", "respond", "incident", "remediate", "fix", "block"]):
+        answer = (
+            "**Incident Response — Immediate Mitigation Steps:**\n\n"
+            "1. **Isolate** affected endpoints from the network immediately.\n"
+            "2. **Block** identified C2 IPs and malicious domains at the perimeter firewall/proxy.\n"
+            "3. **Reset credentials** for all accounts that accessed compromised systems.\n"
+            "4. **Preserve forensic evidence** — take memory dumps and disk images before remediation.\n"
+            "5. **Patch** the exploited vulnerability or disable the compromised service.\n"
+            "6. **Notify** security leadership, legal, and (if required) regulatory bodies.\n"
+            "7. **Conduct threat hunting** for lateral movement indicators across all endpoints."
+        )
+    elif any(k in q for k in ["api key", "gemini key", "configure", "setup", "admin"]):
+        answer = (
+            "**How to Configure the Gemini AI API Key:**\n\n"
+            "1. Go to **Admin Panel** (top navigation, admin accounts only).\n"
+            "2. Click **Settings** tab.\n"
+            "3. Paste your Gemini API key in the input field.\n"
+            "4. Click **Save Settings**.\n\n"
+            "**Get a free API key:** https://aistudio.google.com/apikey\n\n"
+            "Once configured, the AI assistant will answer any cybersecurity question with live Gemini AI responses, "
+            "provide case-specific forensic analysis, and generate full investigation reports."
+        )
+    else:
+        answer = (
+            f"**SENTINEL AI Assistant** — I understand you're asking: *\"{question}\"*\n\n"
+            "To get a live, detailed AI answer to any cybersecurity or forensic question:\n\n"
+            "**Step 1:** Get a free Google Gemini API key at https://aistudio.google.com/apikey\n"
+            "**Step 2:** Go to **Admin Panel → Settings** and paste the key\n"
+            "**Step 3:** Return here and ask any question — Gemini AI will respond in real time\n\n"
+            "In the meantime, I can help with:\n"
+            "• Platform features (ask 'what services does this platform offer?')\n"
+            "• Email phishing analysis\n"
+            "• URL/domain threat analysis\n"
+            "• Malware forensics\n"
+            "• Network PCAP analysis\n"
+            "• Incident response steps"
+        )
 
     return {
-        "answer": (
-            "Gemini AI Investigation Assistant is processing your query. "
-            "Based on correlated forensic evidence, this incident shows characteristics of a sophisticated multi-stage attack. "
-            "Review the attack timeline and IOC correlation sections for specific technical indicators. "
-            "Configure your Gemini API key in Admin Settings for live AI-powered analysis."
-        ),
+        "answer": answer,
         "suggested_actions": [
-            "Review correlated IOCs in the investigation timeline",
-            "Cross-reference evidence across all forensic modules",
-            "Configure Gemini AI API key for real-time AI analysis"
+            "Configure Gemini API key in Admin Panel for live AI responses",
+            "Upload evidence to the relevant forensic module for analysis",
+            "Create an investigation case to correlate all evidence"
         ],
-        "confidence": "MEDIUM"
+        "confidence": "HIGH" if any(k in q for k in ["platform", "phishing", "malware", "url", "pcap", "mitigate", "api key"]) else "MEDIUM"
     }
 
 

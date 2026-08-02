@@ -33,5 +33,22 @@ def get_audit_logs(admin: dict = Depends(require_admin)):
 
 @router.post("/settings")
 def update_settings(gemini_api_key: str, admin: dict = Depends(require_admin)):
+    # Update in-memory settings
     settings.GEMINI_API_KEY = gemini_api_key
-    return {"message": "Gemini AI Settings updated successfully"}
+    # Persist to database so it survives server restarts
+    existing = db.find_one("settings", {"key": "gemini_api_key"})
+    if existing:
+        db.update_one("settings", {"key": "gemini_api_key"}, {"$set": {"value": gemini_api_key}})
+    else:
+        db.insert_one("settings", {"id": "gemini_api_key", "key": "gemini_api_key", "value": gemini_api_key})
+    return {"message": "Gemini AI API key saved and activated successfully"}
+
+@router.get("/settings")
+def get_settings(admin: dict = Depends(require_admin)):
+    """Get current settings — shows whether API key is configured."""
+    stored = db.find_one("settings", {"key": "gemini_api_key"})
+    key = stored.get("value", "") if stored else settings.GEMINI_API_KEY
+    return {
+        "gemini_api_key_configured": bool(key),
+        "gemini_api_key_preview": f"{key[:8]}...{key[-4:]}" if key and len(key) > 12 else ("SET" if key else "NOT SET")
+    }
