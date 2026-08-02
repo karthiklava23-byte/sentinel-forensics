@@ -182,6 +182,7 @@ class GeminiChatRequest(BaseModel):
     case_id: Optional[str] = None
     question: str
     context: Optional[str] = None
+    client_api_key: Optional[str] = None   # Key sent from browser localStorage
 
 class GeminiChatResponse(BaseModel):
     answer: str

@@ -21,8 +21,10 @@ SYSTEM_PERSONA = (
 )
 
 
-def _get_api_key() -> str:
-    """Load Gemini API key from DB (persistent) or fall back to env config."""
+def _get_api_key(override: str = None) -> str:
+    """Load Gemini API key: override (browser localStorage) > DB > env var."""
+    if override:
+        return override
     try:
         from app.database import db
         stored = db.find_one("settings", {"key": "gemini_api_key"})
@@ -33,9 +35,9 @@ def _get_api_key() -> str:
     return settings.GEMINI_API_KEY or ""
 
 
-def _call_gemini_api(prompt: str, max_tokens: int = 1024) -> Optional[str]:
+def _call_gemini_api(prompt: str, max_tokens: int = 1024, api_key_override: str = None) -> Optional[str]:
     """Call the Google Gemini API and return the response text."""
-    api_key = _get_api_key()
+    api_key = _get_api_key(api_key_override)
     if not api_key:
         return None
     try:
@@ -134,7 +136,7 @@ def generate_malware_explanation(malware_result: dict) -> str:
     )
 
 
-def answer_investigator_question(question: str, case_context: Optional[str] = None) -> Dict[str, Any]:
+def answer_investigator_question(question: str, case_context: Optional[str] = None, api_key_override: str = None) -> Dict[str, Any]:
     """Answer an investigator's natural language question about the case or platform."""
     context_block = f"\nCase Context:\n{case_context}\n" if case_context else ""
     prompt = (
@@ -146,7 +148,7 @@ def answer_investigator_question(question: str, case_context: Optional[str] = No
         f"Format your answer clearly with bullet points or numbered lists where helpful."
     )
 
-    response = _call_gemini_api(prompt, max_tokens=1024)
+    response = _call_gemini_api(prompt, max_tokens=1024, api_key_override=api_key_override)
 
     if response:
         # If it's an API error message, pass it back clearly
@@ -271,7 +273,7 @@ def answer_investigator_question(question: str, case_context: Optional[str] = No
     }
 
 
-def generate_natural_language_report(case_data: dict, ai_report: dict, evidence_list: list) -> str:
+def generate_natural_language_report(case_data: dict, ai_report: dict, evidence_list: list, api_key_override: str = None) -> str:
     """Generate a comprehensive natural language forensic investigation report."""
     case_title = case_data.get("title", "Unknown Investigation")
     threat_score = ai_report.get("overall_threat_score", 0)
@@ -299,7 +301,8 @@ def generate_natural_language_report(case_data: dict, ai_report: dict, evidence_
         f"Include: (1) Incident Overview, (2) Technical Findings Summary, (3) Impact Assessment, (4) Recommended Response Actions."
     )
 
-    response = _call_gemini_api(prompt, max_tokens=700)
+    response = _call_gemini_api(prompt, max_tokens=700, api_key_override=api_key_override)
+
     if response:
         return response
 

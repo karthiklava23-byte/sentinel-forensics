@@ -77,9 +77,18 @@ export const threatIntelAPI = {
   getGlobalSummary: ()                => api.get('/threat-intel/summary'),
 };
 
+// Helper: read/write the Gemini API key from localStorage (admin-only)
+export const getStoredGeminiKey = () => localStorage.getItem('sentinel_gemini_key') || '';
+export const setStoredGeminiKey = (key) => localStorage.setItem('sentinel_gemini_key', key);
+
 export const geminiAPI = {
-  chat:         (req)    => api.post('/gemini/chat', req),
-  generateReport:(caseId) => api.get(`/gemini/report/${caseId}`),
+  chat: (req) => api.post('/gemini/chat', {
+    ...req,
+    client_api_key: getStoredGeminiKey()
+  }),
+  generateReport: (caseId) => api.get(`/gemini/report/${caseId}`, {
+    params: { client_api_key: getStoredGeminiKey() }
+  }),
 };
 
 export const analyticsAPI = {

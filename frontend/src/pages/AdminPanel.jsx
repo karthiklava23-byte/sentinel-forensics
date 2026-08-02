@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Users, Activity, Cpu, ShieldCheck, Save } from 'lucide-react';
-import { adminAPI } from '../services/api';
+import { Settings, Users, Activity, Cpu, ShieldCheck, Save, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { adminAPI, setStoredGeminiKey, getStoredGeminiKey } from '../services/api';
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
@@ -8,8 +8,15 @@ const AdminPanel = () => {
   const [geminiKey, setGeminiKey] = useState('');
   const [loading, setLoading] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState('');
+  const [keyStored, setKeyStored] = useState(false);
 
   useEffect(() => {
+    // Load existing key from localStorage
+    const stored = getStoredGeminiKey();
+    if (stored) {
+      setGeminiKey(stored);
+      setKeyStored(true);
+    }
     fetchAdminData();
   }, []);
 
@@ -31,10 +38,15 @@ const AdminPanel = () => {
 
   const handleSaveSettings = async (e) => {
     e.preventDefault();
+    if (!geminiKey.trim()) return;
     try {
-      await adminAPI.updateSettings(geminiKey);
-      setSaveSuccess('Gemini AI API Settings saved successfully!');
-      setTimeout(() => setSaveSuccess(''), 3000);
+      // Save to localStorage (persists across backend restarts)
+      setStoredGeminiKey(geminiKey.trim());
+      setKeyStored(true);
+      // Also try to save to backend (best-effort, not critical)
+      try { await adminAPI.updateSettings(geminiKey.trim()); } catch (_) {}
+      setSaveSuccess('✅ Gemini AI API key saved! The assistant is now active for all users on this device.');
+      setTimeout(() => setSaveSuccess(''), 5000);
     } catch (err) {
       alert('Failed to save settings');
     }
@@ -112,6 +124,17 @@ const AdminPanel = () => {
             GOOGLE GEMINI AI INTEGRATION
           </h3>
 
+          {/* Status badge */}
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-[11px] font-mono ${
+            keyStored
+              ? 'bg-emerald-950/40 border-emerald-700/40 text-emerald-300'
+              : 'bg-amber-950/40 border-amber-700/40 text-amber-300'
+          }`}>
+            {keyStored
+              ? <><CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> API KEY ACTIVE — AI assistant is live</>  
+              : <><AlertCircle className="w-3.5 h-3.5 shrink-0" /> NO API KEY — Enter your key below</>}
+          </div>
+
           <form onSubmit={handleSaveSettings} className="space-y-3">
             {saveSuccess && (
               <div className="p-2.5 bg-emerald-950 text-emerald-400 border border-emerald-500 rounded text-[11px]">
@@ -125,20 +148,29 @@ const AdminPanel = () => {
                 type="password"
                 placeholder="AIzaSy..."
                 value={geminiKey}
-                onChange={(e) => setGeminiKey(e.target.value)}
+                onChange={(e) => { setGeminiKey(e.target.value); setKeyStored(false); }}
                 className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-purple-500"
               />
               <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
-                When provided, the platform streams live Google Gemini Flash model responses for forensic correlation, natural language reports, and interactive assistant chat.
+                Key is saved in your browser — works permanently without needing a server restart.
               </p>
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[10px] text-purple-400 hover:text-purple-300 mt-1"
+              >
+                <ExternalLink className="w-3 h-3" /> Get a free key at aistudio.google.com
+              </a>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded flex items-center justify-center gap-2 shadow-neon-purple"
+              disabled={!geminiKey.trim()}
+              className="w-full py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white font-bold rounded flex items-center justify-center gap-2 shadow-neon-purple"
             >
               <Save className="w-4 h-4" />
-              SAVE GEMINI AI CONFIG
+              SAVE &amp; ACTIVATE GEMINI AI
             </button>
           </form>
         </div>
