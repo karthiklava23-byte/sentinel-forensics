@@ -59,6 +59,24 @@ def purge_demo_data_on_startup():
     except Exception:
         pass
 
+from fastapi.responses import FileResponse
+
+@app.get("/api/system/download-manual-pdf")
+def download_manual_pdf():
+    """Download the official SENTINEL AI System & Function Input/Output Manual PDF."""
+    pdf_path = os.path.join(os.path.dirname(__file__), "SENTINEL_AI_System_Input_Output_Manual.pdf")
+    if not os.path.exists(pdf_path):
+        try:
+            from generate_pdf_manual import build_manual_pdf
+            build_manual_pdf(pdf_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate manual: {e}")
+    return FileResponse(
+        pdf_path,
+        media_type="application/pdf",
+        filename="SENTINEL_AI_System_Input_Output_Manual.pdf"
+    )
+
 @app.get("/api/health")
 @app.get("/")
 def root():

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Bell, User, LogOut, Terminal, Activity, Monitor, Smartphone } from 'lucide-react';
+import { Shield, Bell, User, LogOut, Terminal, Activity, Monitor, Smartphone, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,6 +60,17 @@ const Navbar = ({ viewMode, setViewMode }) => {
           <Smartphone className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">MOBILE VIEW</span>
         </button>
+
+        <a
+          href="/api/system/download-manual-pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-cyan-400 hover:bg-cyan-950/60 border border-cyan-800/40 transition-all"
+          title="Download System & Function Input/Output Manual PDF"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span className="hidden md:inline">MANUAL PDF</span>
+        </a>
       </div>
 
       {/* User Actions */}
