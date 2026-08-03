@@ -43,6 +43,15 @@ const AdminPanel = () => {
     }
   };
 
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await adminAPI.updateUserRole(userId, newRole);
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    } catch (err) {
+      alert("Failed to update user role.");
+    }
+  };
+
   const handleSaveSettings = async (e) => {
     e.preventDefault();
     if (!geminiKey.trim()) return;
@@ -107,11 +116,15 @@ const AdminPanel = () => {
                     </td>
                     <td className="py-3 px-3 text-cyan-400">{u.email}</td>
                     <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded uppercase font-bold text-[10px] ${
-                        u.role === 'admin' ? 'bg-purple-950 text-purple-400 border border-purple-800' : 'bg-slate-900 text-cyan-400 border border-slate-700'
-                      }`}>
-                        {u.role}
-                      </span>
+                      <select
+                        value={u.role}
+                        onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                        className="bg-slate-900 text-cyan-400 border border-slate-700 rounded px-2 py-1 uppercase font-bold text-[10px] focus:outline-none focus:border-cyan-500"
+                      >
+                        <option value="analyst">Analyst</option>
+                        <option value="investigator">Investigator</option>
+                        <option value="admin">Admin</option>
+                      </select>
                     </td>
                     <td className="py-3 px-3 text-slate-400 text-[10px]">{u.created_at}</td>
                     <td className="py-3 px-3">

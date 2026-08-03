@@ -102,6 +102,8 @@ export const adminAPI = {
   getSettings:   ()            => api.get('/admin/settings'),
   updateSettings:(geminiApiKey) =>
     api.post(`/admin/settings?gemini_api_key=${encodeURIComponent(geminiApiKey)}`),
+  updateUserRole:(userId, role) =>
+    api.put(`/admin/users/${userId}/role?role=${encodeURIComponent(role)}`),
 };
 
 export const analystAPI = {

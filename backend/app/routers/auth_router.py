@@ -39,13 +39,15 @@ def register(user_data: UserRegister):
         raise HTTPException(status_code=400, detail="Admin registration is restricted.")
         
     user_id = str(uuid.uuid4())
+    target_role = user_data.role if user_data.role else UserRole.INVESTIGATOR
+
     new_user = {
         "id": user_id,
         "username": user_data.username,
         "email": user_data.email,
         "password_hash": hash_password(user_data.password),
         "full_name": user_data.full_name,
-        "role": UserRole.INVESTIGATOR,
+        "role": target_role,
         "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "is_active": True
     }

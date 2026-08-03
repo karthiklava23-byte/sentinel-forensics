@@ -53,3 +53,18 @@ def get_settings(admin: dict = Depends(require_admin)):
         "gemini_api_key_configured": bool(key),
         "gemini_api_key_preview": f"{key[:8]}...{key[-4:]}" if key and len(key) > 12 else ("SET" if key else "NOT SET")
     }
+
+@router.put("/users/{user_id}/role")
+def update_user_role(user_id: str, role: str, admin: dict = Depends(require_admin)):
+    """Update role for a user (admin, investigator, analyst)."""
+    valid_roles = ["admin", "investigator", "analyst"]
+    clean_role = role.lower().strip()
+    if clean_role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of {valid_roles}")
+
+    target = db.find_one("users", {"id": user_id})
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found.")
+
+    db.update_one("users", {"id": user_id}, {"$set": {"role": clean_role}})
+    return {"message": f"User {target.get('email')} role updated to {clean_role}", "user_id": user_id, "role": clean_role}
