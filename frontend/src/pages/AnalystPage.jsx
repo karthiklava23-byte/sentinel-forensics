@@ -497,7 +497,7 @@ export default function AnalystPage() {
             </div>
           </div>
 
-          {scanResult &amp;&amp; (
+          {scanResult && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="cyber-card p-5 rounded-xl border border-slate-800 text-center flex flex-col justify-center items-center">
                 <p className="text-[10px] text-slate-500 uppercase">SECURITY HEALTH GRADE</p>
