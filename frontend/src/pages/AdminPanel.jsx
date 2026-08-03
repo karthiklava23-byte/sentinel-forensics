@@ -48,7 +48,8 @@ const AdminPanel = () => {
       await adminAPI.updateUserRole(userId, newRole);
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
     } catch (err) {
-      alert("Failed to update user role.");
+      console.error("Role update error:", err);
+      alert(err.response?.data?.detail || "Failed to update user role.");
     }
   };
 

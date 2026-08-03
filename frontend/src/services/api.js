@@ -103,7 +103,7 @@ export const adminAPI = {
   updateSettings:(geminiApiKey) =>
     api.post(`/admin/settings?gemini_api_key=${encodeURIComponent(geminiApiKey)}`),
   updateUserRole:(userId, role) =>
-    api.put(`/admin/users/${userId}/role?role=${encodeURIComponent(role)}`),
+    api.put(`/admin/users/${encodeURIComponent(userId)}/role?role=${encodeURIComponent(role)}`, { role }),
 };
 
 export const analystAPI = {
