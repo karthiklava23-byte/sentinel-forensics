@@ -99,6 +99,7 @@ export const analyticsAPI = {
 export const adminAPI = {
   getUsers:      ()            => api.get('/admin/users'),
   getLogs:       ()            => api.get('/admin/logs'),
+  getSettings:   ()            => api.get('/admin/settings'),
   updateSettings:(geminiApiKey) =>
     api.post(`/admin/settings?gemini_api_key=${encodeURIComponent(geminiApiKey)}`),
 };

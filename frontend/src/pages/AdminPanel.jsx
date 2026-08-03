@@ -11,24 +11,31 @@ const AdminPanel = () => {
   const [keyStored, setKeyStored] = useState(false);
 
   useEffect(() => {
-    // Load existing key from localStorage
-    const stored = getStoredGeminiKey();
-    if (stored) {
-      setGeminiKey(stored);
-      setKeyStored(true);
-    }
     fetchAdminData();
   }, []);
 
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [usersRes, logsRes] = await Promise.all([
+      const [usersRes, logsRes, settingsRes] = await Promise.all([
         adminAPI.getUsers(),
-        adminAPI.getLogs()
+        adminAPI.getLogs(),
+        adminAPI.getSettings().catch(() => ({ data: {} }))
       ]);
-      setUsers(usersRes.data);
-      setLogs(logsRes.data);
+      setUsers(usersRes.data || []);
+      setLogs(logsRes.data || []);
+      
+      const serverKey = settingsRes.data?.gemini_api_key || '';
+      const localKey = getStoredGeminiKey();
+      const activeKey = serverKey || localKey;
+
+      if (activeKey) {
+        setGeminiKey(activeKey);
+        setKeyStored(true);
+        if (serverKey && !localKey) {
+          setStoredGeminiKey(serverKey);
+        }
+      }
     } catch (err) {
       console.error("Admin data fetch error:", err);
     } finally {

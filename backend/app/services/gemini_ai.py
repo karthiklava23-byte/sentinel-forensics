@@ -64,12 +64,16 @@ def _call_gemini_api(prompt: str, max_tokens: int = 1024, api_key_override: str 
                 parts = content.get("parts", [])
                 if parts:
                     return parts[0].get("text", "").strip()
-        elif resp.status_code == 400:
-            return f"[Gemini API Error] Bad request — check your API key format. Status: {resp.status_code}"
-        elif resp.status_code == 403:
-            return "[Gemini API Error] API key is invalid or has no access to Gemini 1.5 Flash. Please verify the key in Admin Settings."
+        else:
+            try:
+                err_data = resp.json().get("error", {})
+                err_msg = err_data.get("message", "Unknown error")
+                err_status = err_data.get("status", str(resp.status_code))
+                return f"[Gemini API Error {resp.status_code}] {err_msg} ({err_status})"
+            except Exception:
+                return f"[Gemini API Error {resp.status_code}] HTTP error while connecting to Google Gemini API."
     except requests.exceptions.Timeout:
-        return "[Gemini API] Request timed out. The model may be slow — try again."
+        return "[Gemini API Error] Request timed out while connecting to Google Gemini API."
     except Exception as e:
         return f"[Gemini API Error] {str(e)}"
     return None
@@ -152,12 +156,12 @@ def answer_investigator_question(question: str, case_context: Optional[str] = No
 
     if response:
         # If it's an API error message, pass it back clearly
-        if response.startswith("[Gemini API"):
+        if response.startswith("[Gemini API Error"):
             return {
-                "answer": f"⚠️ {response}\n\nTo use the live AI assistant:\n• Go to **Admin Panel → Settings**\n• Enter your Google Gemini API key (get one free at https://aistudio.google.com/apikey)\n• Click Save",
+                "answer": f"⚠️ {response}\n\n**Troubleshooting steps:**\n1. Verify your key at https://aistudio.google.com/apikey\n2. Make sure the key has no leading/trailing spaces\n3. Update the key in Admin Panel → Settings",
                 "suggested_actions": [
-                    "Go to Admin Panel and enter your Gemini API key",
-                    "Get a free key at https://aistudio.google.com/apikey",
+                    "Check API key status at aistudio.google.com/apikey",
+                    "Update API key in Admin Panel → Settings",
                 ],
                 "confidence": "N/A"
             }
