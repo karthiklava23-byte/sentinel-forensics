@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Sparkles,
   XCircle,
-  Hash
+  Hash,
+  Crosshair
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
@@ -129,13 +130,23 @@ const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsCaseModalOpen(true)}
-            className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-cyber-glow transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            NEW INVESTIGATION CASE
-          </button>
+          {user?.role === 'analyst' ? (
+            <button
+              onClick={() => navigate('/analyst')}
+              className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-cyber-glow transition-all"
+            >
+              <Crosshair className="w-4 h-4" />
+              OPEN ANALYST SOC WORKSPACE
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsCaseModalOpen(true)}
+              className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-cyber-glow transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              NEW INVESTIGATION CASE
+            </button>
+          )}
         </div>
       </div>
 
@@ -427,59 +438,85 @@ const Dashboard = () => {
 
       {/* Active Investigations Quick List & Audit Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-xs">
-        {/* Active Cases (2 cols) */}
-        <div className="lg:col-span-2 cyber-card p-5 rounded-xl border border-slate-800">
-          <div className="flex items-center justify-between mb-4">
+        {/* Recent Cases Section — visible to Investigators and Admins */}
+        {user?.role === 'analyst' ? (
+          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-3 font-mono">
             <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-              <FolderGit2 className="w-4 h-4 text-cyan-400" />
-              RECENT ACTIVE INVESTIGATIONS
+              <Crosshair className="w-4 h-4 text-cyan-400" />
+              ANALYST SOC TRIAGE &amp; THREAT HUNTING TOOLS
             </h3>
-            <button
-              onClick={() => navigate('/cases')}
-              className="text-cyan-400 hover:underline text-xs flex items-center gap-1"
-            >
-              VIEW ALL CASES ({metrics.total_cases})
-            </button>
+            <p className="text-xs text-slate-400">
+              Access real-time alert queue, craft YARA/Sigma detection rules, parse SIEM logs, audit attack surface, and generate 1-click containment playbooks.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
+                ⚡ Triage Queue →
+              </button>
+              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
+                🏹 YARA / Sigma Rules →
+              </button>
+              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
+                📜 SIEM Log Parser →
+              </button>
+              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
+                🤖 SOAR Playbooks →
+              </button>
+            </div>
           </div>
+        ) : (
+          <div className="cyber-card p-5 rounded-xl border border-slate-800">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-mono font-bold text-slate-200 flex items-center gap-2">
+                <FolderGit2 className="w-4 h-4 text-cyan-400" />
+                RECENT INVESTIGATION INCIDENTS
+              </h3>
+              <button
+                onClick={() => navigate('/cases')}
+                className="text-cyan-400 hover:underline text-xs flex items-center gap-1 font-mono"
+              >
+                VIEW ALL CASES ({metrics.total_cases})
+              </button>
+            </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
-                  <th className="py-2.5 px-3">CASE ID</th>
-                  <th className="py-2.5 px-3">TITLE / INCIDENT</th>
-                  <th className="py-2.5 px-3">THREAT LEVEL</th>
-                  <th className="py-2.5 px-3">STATUS</th>
-                  <th className="py-2.5 px-3 text-right">ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {recent_cases.map((c) => (
-                  <tr key={c.id} className="hover:bg-slate-900/50 transition-colors">
-                    <td className="py-3 px-3 text-cyan-400 font-bold">{c.case_number}</td>
-                    <td className="py-3 px-3 text-slate-200 max-w-xs truncate">{c.title}</td>
-                    <td className="py-3 px-3">
-                      <ThreatBadge level={c.priority} />
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-bold text-[10px]">
-                        {c.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <button
-                        onClick={() => navigate(`/cases/${c.id}`)}
-                        className="px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 hover:bg-cyan-900 text-[11px]"
-                      >
-                        INVESTIGATE
-                      </button>
-                    </td>
+            <div className="overflow-x-auto font-mono">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
+                    <th className="py-2.5 px-3">CASE ID</th>
+                    <th className="py-2.5 px-3">TITLE / INCIDENT</th>
+                    <th className="py-2.5 px-3">THREAT LEVEL</th>
+                    <th className="py-2.5 px-3">STATUS</th>
+                    <th className="py-2.5 px-3 text-right">ACTION</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {recent_cases.map((c) => (
+                    <tr key={c.id} className="hover:bg-slate-900/50 transition-colors">
+                      <td className="py-3 px-3 text-cyan-400 font-bold">{c.case_number}</td>
+                      <td className="py-3 px-3 text-slate-200 max-w-xs truncate">{c.title}</td>
+                      <td className="py-3 px-3">
+                        <ThreatBadge level={c.priority} />
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-bold text-[10px]">
+                          {c.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <button
+                          onClick={() => navigate(`/cases/${c.id}`)}
+                          className="px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 hover:bg-cyan-900 text-[11px]"
+                        >
+                          INVESTIGATE
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* My Scan History — visible to all users for their own scans */}
         <div className="cyber-card p-5 rounded-xl border border-slate-800">

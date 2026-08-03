@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import GeminiCopilotFloatingWidget from './components/GeminiCopilotFloatingWidget';
 import MobileBottomNav from './components/MobileBottomNav';
+import GeminiCopilotFloatingWidget from './components/GeminiCopilotFloatingWidget';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -19,15 +19,24 @@ import InvestigationReportPage from './pages/InvestigationReportPage';
 import AdminPanel from './pages/AdminPanel';
 import AdminUsersPage from './pages/AdminUsersPage';
 import AnalystPage from './pages/AnalystPage';
+import ErrorBoundary from './components/ErrorBoundary';
 
-const ProtectedRoute = ({ children }) => {
-  const { token, loading } = useAuth();
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { token, user, loading } = useAuth();
   if (loading) return null;
   if (!token) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRole = user?.role || 'investigator';
+    if (!allowedRoles.includes(userRole)) {
+      if (userRole === 'analyst') return <Navigate to="/analyst" replace />;
+      if (userRole === 'investigator') return <Navigate to="/cases" replace />;
+      return <Navigate to="/" replace />;
+    }
+  }
+
   return children;
 };
-
-import ErrorBoundary from './components/ErrorBoundary';
 
 const MainLayout = ({ children }) => {
   const [viewMode, setViewModeState] = useState(() => {
@@ -75,10 +84,11 @@ const AppRoutes = () => {
         }
       />
 
+      {/* Investigator & Admin Only Routes (Hidden & Restricted for Analyst) */}
       <Route
         path="/cases"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
             <MainLayout>
               <Cases />
             </MainLayout>
@@ -89,7 +99,7 @@ const AppRoutes = () => {
       <Route
         path="/cases/:id"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
             <MainLayout>
               <CaseDetails />
             </MainLayout>
@@ -97,6 +107,41 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
+            <MainLayout>
+              <InvestigationReportPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/reports/:id"
+        element={
+          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
+            <MainLayout>
+              <InvestigationReportPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Analyst & Admin Only Routes (Restricted for Investigator) */}
+      <Route
+        path="/analyst"
+        element={
+          <ProtectedRoute allowedRoles={['analyst', 'admin']}>
+            <MainLayout>
+              <AnalystPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Shared Forensic Triage Tools (Available to All Roles) */}
       <Route
         path="/email-forensics"
         element={
@@ -152,32 +197,11 @@ const AppRoutes = () => {
         }
       />
 
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <InvestigationReportPage />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-      
-      <Route
-        path="/reports/:id"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <InvestigationReportPage />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-
+      {/* Admin Only Routes */}
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin']}>
             <MainLayout>
               <AdminPanel />
             </MainLayout>
@@ -188,20 +212,9 @@ const AppRoutes = () => {
       <Route
         path="/admin/users"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin']}>
             <MainLayout>
               <AdminUsersPage />
-            </MainLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/analyst"
-        element={
-          <ProtectedRoute>
-            <MainLayout>
-              <AnalystPage />
             </MainLayout>
           </ProtectedRoute>
         }

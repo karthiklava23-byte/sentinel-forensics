@@ -6,7 +6,6 @@ import {
   Mail,
   Globe,
   Network,
-  FileText,
   Settings,
   Cpu,
   Bug,
@@ -18,20 +17,44 @@ import { BRAND_CONFIG } from '../config/brand';
 
 const Sidebar = () => {
   const { user } = useAuth();
+  const role = user?.role || 'investigator';
 
-  const navItems = [
+  let navItems = [
     { name: 'Dashboard',              path: '/',                   icon: LayoutDashboard },
-    { name: 'Analyst Workspace',      path: '/analyst',            icon: Crosshair },
-    { name: 'Cases & Incidents',      path: '/cases',              icon: FolderGit2 },
-    { name: 'Email Forensics',        path: '/email-forensics',    icon: Mail },
-    { name: 'URL Threat Analysis',    path: '/url-forensics',      icon: Globe },
-    { name: 'Network PCAP Forensics', path: '/network-forensics',  icon: Network },
-    { name: 'Malware Forensics',      path: '/malware-forensics',  icon: Bug },
-    { name: 'Threat Intelligence',    path: '/threat-intelligence', icon: ShieldCheck },
   ];
 
-  if (user?.role === 'admin') {
-    navItems.push({ name: 'Admin Control Panel', path: '/admin', icon: Settings });
+  if (role === 'analyst') {
+    // Analyst Role: Analyst Workspace + Standalone Triage Tools (No Cases)
+    navItems.push(
+      { name: 'Analyst Workspace',      path: '/analyst',            icon: Crosshair },
+      { name: 'Email Forensics',        path: '/email-forensics',    icon: Mail },
+      { name: 'URL Threat Analysis',    path: '/url-forensics',      icon: Globe },
+      { name: 'Network PCAP Forensics', path: '/network-forensics',  icon: Network },
+      { name: 'Malware Forensics',      path: '/malware-forensics',  icon: Bug },
+      { name: 'Threat Intelligence',    path: '/threat-intelligence', icon: ShieldCheck }
+    );
+  } else if (role === 'investigator') {
+    // Investigator Role: Case Management + Forensics Modules (No Analyst Workspace)
+    navItems.push(
+      { name: 'Cases & Incidents',      path: '/cases',              icon: FolderGit2 },
+      { name: 'Email Forensics',        path: '/email-forensics',    icon: Mail },
+      { name: 'URL Threat Analysis',    path: '/url-forensics',      icon: Globe },
+      { name: 'Network PCAP Forensics', path: '/network-forensics',  icon: Network },
+      { name: 'Malware Forensics',      path: '/malware-forensics',  icon: Bug },
+      { name: 'Threat Intelligence',    path: '/threat-intelligence', icon: ShieldCheck }
+    );
+  } else {
+    // Admin Role: Full Platform Access
+    navItems.push(
+      { name: 'Analyst Workspace',      path: '/analyst',            icon: Crosshair },
+      { name: 'Cases & Incidents',      path: '/cases',              icon: FolderGit2 },
+      { name: 'Email Forensics',        path: '/email-forensics',    icon: Mail },
+      { name: 'URL Threat Analysis',    path: '/url-forensics',      icon: Globe },
+      { name: 'Network PCAP Forensics', path: '/network-forensics',  icon: Network },
+      { name: 'Malware Forensics',      path: '/malware-forensics',  icon: Bug },
+      { name: 'Threat Intelligence',    path: '/threat-intelligence', icon: ShieldCheck },
+      { name: 'Admin Control Panel',    path: '/admin',              icon: Settings }
+    );
   }
 
   return (
@@ -39,7 +62,7 @@ const Sidebar = () => {
       <div className="space-y-6">
         <div>
           <p className="px-3 text-[10px] font-mono text-slate-500 font-semibold tracking-wider uppercase mb-2">
-            FORENSIC MODULES
+            {role === 'analyst' ? 'SOC ANALYST MODULES' : role === 'investigator' ? 'INVESTIGATION MODULES' : 'ALL PLATFORM MODULES'}
           </p>
           <nav className="space-y-1">
             {navItems.map((item) => {
@@ -68,10 +91,10 @@ const Sidebar = () => {
         <div className="p-3 rounded-lg bg-slate-900/60 border border-purple-900/40 font-mono text-xs">
           <div className="flex items-center gap-2 text-purple-400 mb-1 font-semibold">
             <Cpu className="w-4 h-4" />
-            <span>Gemini AI Correlation</span>
+            <span>Gemini AI Assistant</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
-            5-module IOC correlation engine active. AI-powered forensic analysis ready.
+            AI-powered forensic analysis and threat correlation ready.
           </p>
           <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
             <div className="bg-gradient-to-r from-cyan-500 via-purple-500 to-blue-500 h-full w-full animate-pulse"></div>
@@ -83,7 +106,7 @@ const Sidebar = () => {
       {/* Footer info */}
       <div className="pt-4 border-t border-slate-800/80 text-[10px] font-mono text-slate-500 text-center">
         <p>{BRAND_CONFIG.shortName} DFIR SYSTEM</p>
-        <p className="text-[9px] text-slate-600">CLASSIFIED INVESTIGATION TOOL</p>
+        <p className="text-[9px] text-slate-600">ROLE: <strong className="text-cyan-400 uppercase">{role}</strong></p>
       </div>
     </aside>
   );

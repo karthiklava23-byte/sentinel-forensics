@@ -1,17 +1,42 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderGit2, Mail, Globe, Network, Bug, Sparkles, Crosshair } from 'lucide-react';
+import { LayoutDashboard, FolderGit2, Mail, Globe, Network, Bug, Crosshair } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
-const MobileBottomNav = ({ onOpenGemini }) => {
-  const tabs = [
+const MobileBottomNav = () => {
+  const { user } = useAuth();
+  const role = user?.role || 'investigator';
+
+  let tabs = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Analyst', path: '/analyst', icon: Crosshair },
-    { name: 'Cases', path: '/cases', icon: FolderGit2 },
-    { name: 'Email', path: '/email-forensics', icon: Mail },
-    { name: 'URL', path: '/url-forensics', icon: Globe },
-    { name: 'PCAP', path: '/network-forensics', icon: Network },
-    { name: 'Malware', path: '/malware-forensics', icon: Bug },
   ];
+
+  if (role === 'analyst') {
+    tabs.push(
+      { name: 'Analyst', path: '/analyst', icon: Crosshair },
+      { name: 'Email', path: '/email-forensics', icon: Mail },
+      { name: 'URL', path: '/url-forensics', icon: Globe },
+      { name: 'PCAP', path: '/network-forensics', icon: Network },
+      { name: 'Malware', path: '/malware-forensics', icon: Bug }
+    );
+  } else if (role === 'investigator') {
+    tabs.push(
+      { name: 'Cases', path: '/cases', icon: FolderGit2 },
+      { name: 'Email', path: '/email-forensics', icon: Mail },
+      { name: 'URL', path: '/url-forensics', icon: Globe },
+      { name: 'PCAP', path: '/network-forensics', icon: Network },
+      { name: 'Malware', path: '/malware-forensics', icon: Bug }
+    );
+  } else {
+    tabs.push(
+      { name: 'Analyst', path: '/analyst', icon: Crosshair },
+      { name: 'Cases', path: '/cases', icon: FolderGit2 },
+      { name: 'Email', path: '/email-forensics', icon: Mail },
+      { name: 'URL', path: '/url-forensics', icon: Globe },
+      { name: 'PCAP', path: '/network-forensics', icon: Network },
+      { name: 'Malware', path: '/malware-forensics', icon: Bug }
+    );
+  }
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0c1019]/95 backdrop-blur-lg border-t border-slate-800 px-2 py-2 flex items-center justify-around font-mono">
