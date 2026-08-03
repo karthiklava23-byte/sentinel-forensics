@@ -43,6 +43,22 @@ app.include_router(threat_intel_router.router)
 app.include_router(gemini_router.router)
 app.include_router(analyst_router.router)
 
+@app.on_event("startup")
+def purge_demo_data_on_startup():
+    """Ensure system starts 100% clean with zero demo cases or sample alerts."""
+    try:
+        from app.database import db
+        cases = db.find_many("cases")
+        for c in cases:
+            if c.get("created_by") in ["system", "demo", "sample"] or "Demo" in c.get("title", "") or "Sample" in c.get("title", ""):
+                db.delete_one("cases", {"id": c["id"]})
+        alerts = db.find_many("analyst_alerts")
+        for a in alerts:
+            if a.get("id", "").startswith("ALT-"):
+                db.delete_one("analyst_alerts", {"id": a["id"]})
+    except Exception:
+        pass
+
 @app.get("/api/health")
 @app.get("/")
 def root():

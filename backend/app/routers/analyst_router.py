@@ -12,58 +12,6 @@ from app.database import db
 
 router = APIRouter(prefix="/api/analyst", tags=["Analyst SOC & Threat Hunting Workspace"])
 
-# Seed Triage Alerts Data
-INITIAL_ALERTS = [
-    {
-        "id": "ALT-9041",
-        "title": "Multiple Failed SSH Logins (Brute Force Detection)",
-        "source": "Authentication Log",
-        "severity": "HIGH",
-        "category": "Brute Force",
-        "source_ip": "185.220.101.5",
-        "target_asset": "auth-prod-01.internal",
-        "timestamp": "2026-08-03 11:42:10",
-        "status": "OPEN",
-        "details": "Over 140 failed login attempts detected within 60 seconds targeting root account from single external IP."
-    },
-    {
-        "id": "ALT-9042",
-        "title": "Encoded PowerShell Script Execution Observed",
-        "source": "Windows Event Log (ID 4104)",
-        "severity": "CRITICAL",
-        "category": "Execution",
-        "source_ip": "10.0.4.112",
-        "target_asset": "wkstn-finance-08",
-        "timestamp": "2026-08-03 11:48:35",
-        "status": "OPEN",
-        "details": "powershell.exe executed with -e -enc payload importing VirtualAllocEx and WriteProcessMemory APIs."
-    },
-    {
-        "id": "ALT-9043",
-        "title": "Outbound DNS Tunnelling Request Frequency Outlier",
-        "source": "DNS Gateway",
-        "severity": "MEDIUM",
-        "category": "C2 Traffic",
-        "source_ip": "10.0.2.89",
-        "target_asset": "srv-file-03",
-        "timestamp": "2026-08-03 12:01:04",
-        "status": "OPEN",
-        "details": "Subdomain query length > 65 characters sending base64 payloads to ns1.attacker-c2-net.xyz."
-    },
-    {
-        "id": "ALT-9044",
-        "title": "Suspicious Executable Dropped in %TEMP% Directory",
-        "source": "EDR Agent",
-        "severity": "HIGH",
-        "category": "Malware Persistence",
-        "source_ip": "10.0.1.44",
-        "target_asset": "wkstn-exec-01",
-        "timestamp": "2026-08-03 12:09:50",
-        "status": "OPEN",
-        "details": "Binary update_svc.exe written with Shannon entropy 7.82/8.00 (Packed/Encrypted)."
-    }
-]
-
 # Request & Response Models
 class TriageActionRequest(BaseModel):
     action: str  # FALSE_POSITIVE, ESCALATE, CONTAIN
@@ -90,10 +38,6 @@ class PlaybookGenerateRequest(BaseModel):
 def get_triage_alerts(current_user: dict = Depends(get_current_user)):
     """Get active SOC alert triage queue."""
     existing = db.find_many("analyst_alerts")
-    if not existing:
-        for alt in INITIAL_ALERTS:
-            db.insert_one("analyst_alerts", alt)
-        existing = db.find_many("analyst_alerts")
     return sorted(existing, key=lambda x: x.get("timestamp", ""), reverse=True)
 
 
