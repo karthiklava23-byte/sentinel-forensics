@@ -63,8 +63,8 @@ from fastapi.responses import FileResponse
 
 @app.get("/api/system/download-manual-pdf")
 def download_manual_pdf():
-    """Download the official SENTINEL AI System & Function Input/Output Manual PDF."""
-    pdf_path = os.path.join(os.path.dirname(__file__), "SENTINEL_AI_System_Input_Output_Manual.pdf")
+    """Download the official SENTINEL AI System Directory & Role Capabilities Manual PDF."""
+    pdf_path = os.path.join(os.path.dirname(__file__), "SENTINEL_AI_System_Directory_and_Role_Capabilities.pdf")
     if not os.path.exists(pdf_path):
         try:
             from generate_pdf_manual import build_manual_pdf
@@ -74,7 +74,7 @@ def download_manual_pdf():
     return FileResponse(
         pdf_path,
         media_type="application/pdf",
-        filename="SENTINEL_AI_System_Input_Output_Manual.pdf"
+        filename="SENTINEL_AI_System_Directory_and_Role_Capabilities.pdf"
     )
 
 @app.get("/api/health")
