@@ -35,48 +35,64 @@ def _get_api_key(override: str = None) -> str:
     return settings.GEMINI_API_KEY or ""
 
 
+MODELS_TO_TRY = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-2.0-flash-exp",
+    "gemini-pro"
+]
+
 def _call_gemini_api(prompt: str, max_tokens: int = 1024, api_key_override: str = None) -> Optional[str]:
-    """Call the Google Gemini API and return the response text."""
+    """Call the Google Gemini API with automatic model fallback (gemini-2.0-flash -> gemini-1.5-flash -> gemini-1.5-pro -> gemini-pro)."""
     api_key = _get_api_key(api_key_override)
     if not api_key:
         return None
-    try:
-        url = f"{GEMINI_API_ENDPOINT}?key={api_key}"
-        payload = {
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": [{"text": f"{SYSTEM_PERSONA}\n\n{prompt}"}]
-                }
-            ],
-            "generationConfig": {
-                "maxOutputTokens": max_tokens,
-                "temperature": 0.4,
-                "topP": 0.9
+
+    payload = {
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": f"{SYSTEM_PERSONA}\n\n{prompt}"}]
             }
+        ],
+        "generationConfig": {
+            "maxOutputTokens": max_tokens,
+            "temperature": 0.4,
+            "topP": 0.9
         }
-        resp = requests.post(url, json=payload, timeout=20)
-        if resp.status_code == 200:
-            data = resp.json()
-            candidates = data.get("candidates", [])
-            if candidates:
-                content = candidates[0].get("content", {})
-                parts = content.get("parts", [])
-                if parts:
-                    return parts[0].get("text", "").strip()
-        else:
-            try:
-                err_data = resp.json().get("error", {})
-                err_msg = err_data.get("message", "Unknown error")
-                err_status = err_data.get("status", str(resp.status_code))
-                return f"[Gemini API Error {resp.status_code}] {err_msg} ({err_status})"
-            except Exception:
-                return f"[Gemini API Error {resp.status_code}] HTTP error while connecting to Google Gemini API."
-    except requests.exceptions.Timeout:
-        return "[Gemini API Error] Request timed out while connecting to Google Gemini API."
-    except Exception as e:
-        return f"[Gemini API Error] {str(e)}"
-    return None
+    }
+
+    last_error_msg = ""
+    for model_name in MODELS_TO_TRY:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        try:
+            resp = requests.post(url, json=payload, timeout=20)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    content = candidates[0].get("content", {})
+                    parts = content.get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "").strip()
+            else:
+                try:
+                    err_data = resp.json().get("error", {})
+                    err_msg = err_data.get("message", "Unknown error")
+                    err_status = err_data.get("status", str(resp.status_code))
+                    last_error_msg = f"[Gemini API Error {resp.status_code}] {err_msg} ({err_status})"
+                    # If 404, try next model in loop; if 400/403 API key invalid, stop
+                    if resp.status_code != 404:
+                        return last_error_msg
+                except Exception:
+                    last_error_msg = f"[Gemini API Error {resp.status_code}] HTTP error while connecting to Google Gemini API."
+        except requests.exceptions.Timeout:
+            last_error_msg = "[Gemini API Error] Request timed out while connecting to Google Gemini API."
+        except Exception as e:
+            last_error_msg = f"[Gemini API Error] {str(e)}"
+
+    return last_error_msg or "Failed to connect to Google Gemini API."
 
 
 
