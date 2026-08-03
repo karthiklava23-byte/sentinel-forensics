@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Users, Activity, Cpu, ShieldCheck, Save, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Settings, Users, Activity, Cpu, ShieldCheck, Save, CheckCircle2, AlertCircle, ExternalLink, Trash2 } from 'lucide-react';
 import { adminAPI, setStoredGeminiKey, getStoredGeminiKey } from '../services/api';
 
 const AdminPanel = () => {
@@ -50,6 +50,19 @@ const AdminPanel = () => {
     } catch (err) {
       console.error("Role update error:", err);
       alert(err.response?.data?.detail || "Failed to update user role.");
+    }
+  };
+
+  const handleClearAllCases = async () => {
+    if (!window.confirm("⚠️ WARNING: Are you sure you want to permanently delete ALL cases, evidence, and demo data across ALL user roles? This cannot be undone.")) {
+      return;
+    }
+    try {
+      const res = await adminAPI.clearAllCases();
+      alert(`✅ ${res.data?.message || 'All demo cases and test data purged successfully.'}`);
+      fetchAdminData();
+    } catch (err) {
+      alert("Failed to purge cases.");
     }
   };
 
@@ -194,6 +207,24 @@ const AdminPanel = () => {
               SAVE &amp; ACTIVATE GEMINI AI
             </button>
           </form>
+
+          {/* Purge All Data Section */}
+          <div className="pt-4 border-t border-slate-800 space-y-2">
+            <h4 className="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+              <Trash2 className="w-3.5 h-3.5" /> SYSTEM DATA RESET
+            </h4>
+            <p className="text-[10px] text-slate-500">
+              Permanently purge all demo cases, evidence, scans, and triage alerts across all roles.
+            </p>
+            <button
+              type="button"
+              onClick={handleClearAllCases}
+              className="w-full py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 font-bold rounded flex items-center justify-center gap-2 text-[11px] transition-all"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              PURGE ALL CASES &amp; DEMO DATA
+            </button>
+          </div>
         </div>
       </div>
 

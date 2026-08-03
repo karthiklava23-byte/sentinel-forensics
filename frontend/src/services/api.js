@@ -104,6 +104,7 @@ export const adminAPI = {
     api.post(`/admin/settings?gemini_api_key=${encodeURIComponent(geminiApiKey)}`),
   updateUserRole:(userId, role) =>
     api.put(`/admin/users/${encodeURIComponent(userId)}/role?role=${encodeURIComponent(role)}`, { role }),
+  clearAllCases: ()            => api.delete('/admin/clear-all-cases'),
 };
 
 export const analystAPI = {

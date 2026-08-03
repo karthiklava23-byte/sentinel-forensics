@@ -94,3 +94,33 @@ def update_user_role(
         "user_id": target_id,
         "role": target_role
     }
+
+@router.delete("/clear-all-cases")
+def clear_all_cases(admin: dict = Depends(require_admin)):
+    """Admin endpoint: Purge and remove all cases, evidence, and scans across all roles."""
+    cases = db.find_many("cases")
+    for c in cases:
+        db.delete_one("cases", {"id": c.get("id")})
+    evidences = db.find_many("evidence")
+    for e in evidences:
+        db.delete_one("evidence", {"id": e.get("id")})
+    scans = db.find_many("user_scans")
+    for s in scans:
+        db.delete_one("user_scans", {"id": s.get("id")})
+    alerts = db.find_many("analyst_alerts")
+    for a in alerts:
+        db.delete_one("analyst_alerts", {"id": a.get("id")})
+
+    db.insert_one("logs", {
+        "user_email": admin.get("email"),
+        "action": "ADMIN_PURGE_ALL_DATA",
+        "details": f"Purged {len(cases)} cases, {len(evidences)} evidence artifacts, {len(scans)} scans across all roles.",
+        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+    return {
+        "message": "All demo cases, evidence, scans, and alerts purged successfully.",
+        "purged_cases_count": len(cases),
+        "purged_evidence_count": len(evidences),
+        "purged_scans_count": len(scans)
+    }
