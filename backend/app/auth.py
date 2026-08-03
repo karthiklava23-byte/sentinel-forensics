@@ -4,23 +4,26 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from app.config import settings
 from app.database import db
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 def hash_password(password: str) -> str:
     try:
-        return pwd_context.hash(password)
+        pw_bytes = password.encode('utf-8')[:72]
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(pw_bytes, salt).decode('utf-8')
     except Exception:
         # Fallback SHA256 hashing if bcrypt native binary is missing
         return hashlib.sha256((password + settings.JWT_SECRET).encode()).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
-        if pwd_context.verify(plain_password, hashed_password):
+        pw_bytes = plain_password.encode('utf-8')[:72]
+        hashed_bytes = hashed_password.encode('utf-8')
+        if bcrypt.checkpw(pw_bytes, hashed_bytes):
             return True
     except Exception:
         pass

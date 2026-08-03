@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, Query
 from app.auth import get_current_user
 from app.database import db
 from app.services.email_forensics import parse_eml_file
