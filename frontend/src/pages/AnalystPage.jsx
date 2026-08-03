@@ -65,7 +65,6 @@ export default function AnalystPage() {
   };
 
   const handleTestRule = async () => {
-    if (!ruleContent.trim() || !sampleText.trim()) return;
     setLoadingHunt(true);
     try {
       const res = await analystAPI.testRule({
@@ -82,7 +81,6 @@ export default function AnalystPage() {
   };
 
   const handleParseLogs = async () => {
-    if (!logContent.trim()) return;
     setLoadingParse(true);
     try {
       const res = await analystAPI.parseLogs({ log_content: logContent });
@@ -95,7 +93,6 @@ export default function AnalystPage() {
   };
 
   const handleScanAttackSurface = async () => {
-    if (!targetAsset.trim()) return;
     setLoadingScan(true);
     try {
       const res = await analystAPI.scanAttackSurface({ target: targetAsset });
@@ -108,7 +105,6 @@ export default function AnalystPage() {
   };
 
   const handleGeneratePlaybook = async () => {
-    if (!playbookTarget.trim()) return;
     setLoadingPlaybook(true);
     try {
       const res = await analystAPI.generatePlaybook({
