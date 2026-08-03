@@ -104,4 +104,13 @@ export const adminAPI = {
     api.post(`/admin/settings?gemini_api_key=${encodeURIComponent(geminiApiKey)}`),
 };
 
+export const analystAPI = {
+  getAlerts:          ()             => api.get('/analyst/alerts'),
+  triageAlert:        (id, action, notes) => api.post(`/analyst/alerts/${id}/triage`, { action, notes }),
+  testRule:           (data)         => api.post('/analyst/threat-hunting/test-rule', data),
+  parseLogs:          (data)         => api.post('/analyst/parse-logs', data),
+  scanAttackSurface:  (data)         => api.post('/analyst/scan-attack-surface', data),
+  generatePlaybook:   (data)         => api.post('/analyst/playbooks/generate', data),
+};
+
 export default api;

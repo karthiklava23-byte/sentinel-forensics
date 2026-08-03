@@ -1,10 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderGit2, Mail, Globe, Network, Bug, Sparkles } from 'lucide-react';
+import { LayoutDashboard, FolderGit2, Mail, Globe, Network, Bug, Sparkles, Crosshair } from 'lucide-react';
 
 const MobileBottomNav = ({ onOpenGemini }) => {
   const tabs = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Analyst', path: '/analyst', icon: Crosshair },
     { name: 'Cases', path: '/cases', icon: FolderGit2 },
     { name: 'Email', path: '/email-forensics', icon: Mail },
     { name: 'URL', path: '/url-forensics', icon: Globe },

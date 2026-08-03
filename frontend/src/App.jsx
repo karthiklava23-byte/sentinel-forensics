@@ -18,6 +18,7 @@ import ThreatIntelPage from './pages/ThreatIntelPage';
 import InvestigationReportPage from './pages/InvestigationReportPage';
 import AdminPanel from './pages/AdminPanel';
 import AdminUsersPage from './pages/AdminUsersPage';
+import AnalystPage from './pages/AnalystPage';
 
 const ProtectedRoute = ({ children }) => {
   const { token, loading } = useAuth();
@@ -190,6 +191,17 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <MainLayout>
               <AdminUsersPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/analyst"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <AnalystPage />
             </MainLayout>
           </ProtectedRoute>
         }

@@ -11,6 +11,7 @@ import {
   Cpu,
   Bug,
   ShieldCheck,
+  Crosshair,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BRAND_CONFIG } from '../config/brand';
@@ -20,6 +21,7 @@ const Sidebar = () => {
 
   const navItems = [
     { name: 'Dashboard',              path: '/',                   icon: LayoutDashboard },
+    { name: 'Analyst Workspace',      path: '/analyst',            icon: Crosshair },
     { name: 'Cases & Incidents',      path: '/cases',              icon: FolderGit2 },
     { name: 'Email Forensics',        path: '/email-forensics',    icon: Mail },
     { name: 'URL Threat Analysis',    path: '/url-forensics',      icon: Globe },

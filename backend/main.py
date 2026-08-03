@@ -16,7 +16,7 @@ from app.routers import (
     auth_router, cases_router, evidence_router,
     analytics_router, admin_router
 )
-from app.routers import malware_router, threat_intel_router, gemini_router
+from app.routers import malware_router, threat_intel_router, gemini_router, analyst_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -41,6 +41,7 @@ app.include_router(admin_router.router)
 app.include_router(malware_router.router)
 app.include_router(threat_intel_router.router)
 app.include_router(gemini_router.router)
+app.include_router(analyst_router.router)
 
 @app.get("/api/health")
 @app.get("/")
