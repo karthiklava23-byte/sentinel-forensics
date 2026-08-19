@@ -43,19 +43,33 @@ const MainLayout = ({ children }) => {
     return localStorage.getItem('sentinel_view_mode') || (window.innerWidth < 768 ? 'mobile' : 'pc');
   });
 
+  const [workstationMode, setWorkstationModeState] = useState(() => {
+    return localStorage.getItem('sentinel_workstation_mode') || 'investigator';
+  });
+
   const setViewMode = (mode) => {
     setViewModeState(mode);
     localStorage.setItem('sentinel_view_mode', mode);
   };
 
+  const setWorkstationMode = (mode) => {
+    setWorkstationModeState(mode);
+    localStorage.setItem('sentinel_workstation_mode', mode);
+  };
+
   const isMobile = viewMode === 'mobile';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#080b11] relative">
-      <Navbar viewMode={viewMode} setViewMode={setViewMode} />
+    <div className="min-h-screen flex flex-col bg-[#080C14] relative text-slate-100 font-sans">
+      <Navbar
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        workstationMode={workstationMode}
+        setWorkstationMode={setWorkstationMode}
+      />
       <div className="flex flex-1">
-        {!isMobile && <Sidebar />}
-        <main className={`flex-1 bg-[#0b0f19]/80 overflow-y-auto ${isMobile ? 'pb-24 px-2' : 'pb-16'}`}>
+        {!isMobile && <Sidebar workstationMode={workstationMode} />}
+        <main className={`flex-1 bg-[#080C14] overflow-y-auto ${isMobile ? 'pb-24 px-2' : 'pb-16'}`}>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
@@ -84,11 +98,11 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Investigator & Admin Only Routes (Hidden & Restricted for Analyst) */}
+      {/* Incident Management & Investigation */}
       <Route
         path="/cases"
         element={
-          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
+          <ProtectedRoute allowedRoles={['investigator', 'admin', 'analyst']}>
             <MainLayout>
               <Cases />
             </MainLayout>
@@ -99,7 +113,7 @@ const AppRoutes = () => {
       <Route
         path="/cases/:id"
         element={
-          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
+          <ProtectedRoute allowedRoles={['investigator', 'admin', 'analyst']}>
             <MainLayout>
               <CaseDetails />
             </MainLayout>
@@ -110,7 +124,7 @@ const AppRoutes = () => {
       <Route
         path="/reports"
         element={
-          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
+          <ProtectedRoute allowedRoles={['investigator', 'admin', 'analyst']}>
             <MainLayout>
               <InvestigationReportPage />
             </MainLayout>
@@ -121,7 +135,7 @@ const AppRoutes = () => {
       <Route
         path="/reports/:id"
         element={
-          <ProtectedRoute allowedRoles={['investigator', 'admin']}>
+          <ProtectedRoute allowedRoles={['investigator', 'admin', 'analyst']}>
             <MainLayout>
               <InvestigationReportPage />
             </MainLayout>
@@ -129,11 +143,11 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Analyst & Admin Only Routes (Restricted for Investigator) */}
+      {/* Technical Analyst Workbench */}
       <Route
         path="/analyst"
         element={
-          <ProtectedRoute allowedRoles={['analyst', 'admin']}>
+          <ProtectedRoute allowedRoles={['analyst', 'admin', 'investigator']}>
             <MainLayout>
               <AnalystPage />
             </MainLayout>
@@ -141,7 +155,7 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Shared Forensic Triage Tools (Available to All Roles) */}
+      {/* Forensic Triage Tools */}
       <Route
         path="/email-forensics"
         element={
@@ -197,11 +211,11 @@ const AppRoutes = () => {
         }
       />
 
-      {/* Admin Only Routes */}
+      {/* System Admin Control */}
       <Route
         path="/admin"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['admin', 'investigator', 'analyst']}>
             <MainLayout>
               <AdminPanel />
             </MainLayout>
@@ -212,7 +226,7 @@ const AppRoutes = () => {
       <Route
         path="/admin/users"
         element={
-          <ProtectedRoute allowedRoles={['admin']}>
+          <ProtectedRoute allowedRoles={['admin', 'investigator', 'analyst']}>
             <MainLayout>
               <AdminUsersPage />
             </MainLayout>

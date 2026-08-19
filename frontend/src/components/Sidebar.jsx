@@ -13,73 +13,117 @@ import {
   Crosshair,
   Users,
   Plus,
-  Terminal,
-  Activity
+  Activity,
+  Shield,
+  Trash2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BRAND_CONFIG } from '../config/brand';
 import CaseModal from './CaseModal';
 
-const Sidebar = () => {
+const WORKSTATION_CONFIG = {
+  investigator: {
+    title: 'Incident Investigator Suite',
+    badge: 'Investigator',
+    badgeColor: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
+    groups: [
+      {
+        title: 'Core Workstation',
+        items: [
+          { name: 'SOC Control Room', path: '/', icon: LayoutDashboard },
+          { name: 'Incident Board', path: '/cases', icon: FolderGit2, count: '12' }
+        ]
+      },
+      {
+        title: 'Investigative Tools',
+        items: [
+          { name: 'Email Header Inspector', path: '/email-forensics', icon: Mail },
+          { name: 'Domain & Web Sandbox', path: '/url-forensics', icon: Globe },
+          { name: 'IOC Threat Intelligence', path: '/threat-intelligence', icon: ShieldCheck }
+        ]
+      }
+    ]
+  },
+  analyst: {
+    title: 'Technical Analyst Suite',
+    badge: 'Analyst',
+    badgeColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/30',
+    groups: [
+      {
+        title: 'Core Workstation',
+        items: [
+          { name: 'SOC Control Room', path: '/', icon: LayoutDashboard },
+          { name: 'Rule & Log Analytics', path: '/analyst', icon: Crosshair, badge: 'YARA' }
+        ]
+      },
+      {
+        title: 'DFIR Deep Inspection Engines',
+        items: [
+          { name: 'PCAP Packet Triage', path: '/network-forensics', icon: Network, badge: 'PCAP' },
+          { name: 'PE Malware Static Sandbox', path: '/malware-forensics', icon: Bug, badge: 'PE' },
+          { name: 'IOC Threat Intelligence', path: '/threat-intelligence', icon: ShieldCheck }
+        ]
+      }
+    ]
+  },
+  admin: {
+    title: 'System Admin Workstation',
+    badge: 'Admin Mode',
+    badgeColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
+    groups: [
+      {
+        title: 'Control & Configuration',
+        items: [
+          { name: 'SOC Control Room', path: '/', icon: LayoutDashboard },
+          { name: 'System Administration', path: '/admin', icon: Settings },
+          { name: 'User Access Directory', path: '/admin/users', icon: Users }
+        ]
+      },
+      {
+        title: 'System Telemetry',
+        items: [
+          { name: 'IOC Threat Intelligence', path: '/threat-intelligence', icon: ShieldCheck }
+        ]
+      }
+    ]
+  }
+};
+
+const Sidebar = ({ workstationMode = 'investigator' }) => {
   const { user } = useAuth();
   const role = user?.role || 'investigator';
   const [isCaseModalOpen, setIsCaseModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const groups = [
-    {
-      title: 'Overview',
-      items: [
-        { name: 'SOC Dashboard', path: '/', icon: LayoutDashboard, badge: 'Live' }
-      ]
-    },
-    {
-      title: 'Incident Operations',
-      items: [
-        ...(role === 'analyst' || role === 'admin'
-          ? [{ name: 'Rule & Log Analytics', path: '/analyst', icon: Crosshair, badge: 'DFIR' }]
-          : []),
-        ...(role === 'investigator' || role === 'admin'
-          ? [{ name: 'Cases & Incidents', path: '/cases', icon: FolderGit2, count: '12' }]
-          : [])
-      ]
-    },
-    {
-      title: 'Forensic Triage Suite',
-      items: [
-        { name: 'Email Header Inspector', path: '/email-forensics', icon: Mail },
-        { name: 'Domain & Web Sandbox', path: '/url-forensics', icon: Globe },
-        { name: 'PCAP Packet Triage', path: '/network-forensics', icon: Network, badge: 'PCAP' },
-        { name: 'PE Malware Sandbox', path: '/malware-forensics', icon: Bug, badge: 'YARA' },
-        { name: 'IOC Threat Intelligence', path: '/threat-intelligence', icon: ShieldCheck }
-      ]
-    }
-  ];
-
-  if (role === 'admin') {
-    groups.push({
-      title: 'System Admin',
-      items: [
-        { name: 'System Administration', path: '/admin', icon: Settings },
-        { name: 'User Access Directory', path: '/admin/users', icon: Users }
-      ]
-    });
-  }
+  const activeConfig = WORKSTATION_CONFIG[workstationMode] || WORKSTATION_CONFIG.investigator;
 
   return (
     <>
       <aside className="w-64 bg-[#0F172A] border-r border-[#23314D] shrink-0 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between font-sans text-xs">
         <div className="space-y-6">
-          {/* Action CTA Button */}
-          <button
-            onClick={() => setIsCaseModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition-all hover:scale-[1.01] active:scale-[0.99]"
-          >
-            <Plus className="w-4 h-4 text-white" />
-            <span>Create Incident Case</span>
-          </button>
+          {/* Workstation Header Badge */}
+          <div className="p-3 rounded-lg bg-[#0B101D] border border-[#23314D] space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Active Workstation</span>
+              <span className={`px-2 py-0.2 rounded font-mono text-[9px] font-bold border ${activeConfig.badgeColor}`}>
+                {activeConfig.badge}
+              </span>
+            </div>
+            <p className="font-semibold text-slate-200 text-xs">{activeConfig.title}</p>
+          </div>
 
-          {groups.map((group, gIdx) => (
+          {/* Action CTA Button */}
+          {workstationMode === 'investigator' && (
+            <button
+              onClick={() => setIsCaseModalOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md transition-all"
+            >
+              <Plus className="w-4 h-4 text-white" />
+              <span>Create Incident Case</span>
+            </button>
+          )}
+
+          {activeConfig.groups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-1.5">
               <p className="px-3 text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider">
                 {group.title}
@@ -119,32 +163,24 @@ const Sidebar = () => {
               </nav>
             </div>
           ))}
-
-          {/* Forensic Engine Status Telemetry Card */}
-          <div className="p-3 rounded-lg bg-[#0B101D] border border-[#23314D] text-xs space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-mono font-semibold text-[11px]">
-                <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                <span>Forensic Engine</span>
-              </div>
-              <span className="text-[9px] font-mono text-slate-400">WAL Mode</span>
-            </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-emerald-500 h-full w-full"></div>
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-              <span>Telemetry Feed</span>
-              <span className="text-emerald-400 font-semibold">100% Online</span>
-            </div>
-          </div>
         </div>
 
-        {/* Footer Role Badge */}
-        <div className="pt-3 border-t border-[#23314D] text-[10px] font-mono text-slate-400 flex items-center justify-between">
-          <span className="font-semibold text-slate-300">{BRAND_CONFIG.shortName} SOC</span>
-          <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-400 capitalize font-bold">
-            {role}
-          </span>
+        {/* Engine Status Card */}
+        <div className="pt-3 border-t border-[#23314D] space-y-2">
+          <div className="p-2.5 rounded bg-[#0B101D] border border-[#23314D] text-[11px] font-mono space-y-1">
+            <div className="flex items-center justify-between text-emerald-400 font-semibold">
+              <span className="flex items-center gap-1.5">
+                <Activity className="w-3 h-3 animate-pulse" /> Telemetry Mode
+              </span>
+              <span className="text-[9px] text-slate-400">WAL DB</span>
+            </div>
+            <p className="text-[10px] text-slate-400">Real-time DB persistence online</p>
+          </div>
+
+          <div className="text-[10px] font-mono text-slate-400 flex items-center justify-between px-1">
+            <span>{BRAND_CONFIG.shortName} SOC</span>
+            <span className="capitalize text-cyan-400 font-bold">{role}</span>
+          </div>
         </div>
       </aside>
 

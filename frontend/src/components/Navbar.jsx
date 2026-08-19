@@ -1,10 +1,40 @@
 import React, { useState } from 'react';
-import { Shield, LogOut, Monitor, Smartphone, FileText, Search, User, ChevronDown, Activity, Command } from 'lucide-react';
+import { Shield, LogOut, Monitor, Smartphone, FileText, Search, User, ChevronDown, Activity, Command, Crosshair, Settings, Eye } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BRAND_CONFIG } from '../config/brand';
 
-const Navbar = ({ viewMode, setViewMode }) => {
+const WORKSTATION_MODES = [
+  {
+    id: 'investigator',
+    label: 'Incident Investigator',
+    short: 'Investigator',
+    icon: Shield,
+    color: 'text-[#2563EB] bg-[#2563EB]/10 border-[#2563EB]/30',
+    activeBg: 'bg-[#2563EB] text-white',
+    defaultRoute: '/cases'
+  },
+  {
+    id: 'analyst',
+    label: 'Technical Analyst',
+    short: 'Analyst',
+    icon: Crosshair,
+    color: 'text-[#06B6D4] bg-[#06B6D4]/10 border-[#06B6D4]/30',
+    activeBg: 'bg-[#06B6D4] text-white',
+    defaultRoute: '/network-forensics'
+  },
+  {
+    id: 'admin',
+    label: 'System Admin',
+    short: 'System Admin',
+    icon: Settings,
+    color: 'text-[#EF4444] bg-[#EF4444]/10 border-[#EF4444]/30',
+    activeBg: 'bg-[#EF4444] text-white',
+    defaultRoute: '/admin'
+  }
+];
+
+const Navbar = ({ viewMode, setViewMode, workstationMode, setWorkstationMode }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,23 +53,19 @@ const Navbar = ({ viewMode, setViewMode }) => {
     }
   };
 
-  const getBreadcrumb = () => {
-    const path = location.pathname;
-    if (path === '/') return 'SOC Control Room';
-    if (path.startsWith('/cases')) return 'Incident Workbench';
-    if (path === '/analyst') return 'Rule & Log Analytics';
-    if (path === '/email-forensics') return 'Email Header Inspector';
-    if (path === '/url-forensics') return 'Domain & Web Sandbox';
-    if (path === '/network-forensics') return 'PCAP Packet Triage';
-    if (path === '/malware-forensics') return 'PE Malware Sandbox';
-    if (path === '/threat-intelligence') return 'IOC Intelligence Hub';
-    if (path.startsWith('/admin')) return 'System Audit & Access';
-    return 'Dashboard';
+  const handleSwitchWorkstation = (modeObj) => {
+    if (setWorkstationMode) {
+      setWorkstationMode(modeObj.id);
+    }
+    navigate(modeObj.defaultRoute);
   };
+
+  const activeWorkstation = WORKSTATION_MODES.find(m => m.id === workstationMode) || WORKSTATION_MODES[0];
+  const ActiveIcon = activeWorkstation.icon;
 
   return (
     <header className="h-16 border-b border-[#23314D] bg-[#0F172A] sticky top-0 z-40 px-4 sm:px-6 flex items-center justify-between font-sans shadow-md">
-      {/* Brand logo & Breadcrumb */}
+      {/* Left Brand logo & Workstation Mode Selector */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
           <div className="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 group-hover:border-blue-400 transition-all">
@@ -54,40 +80,55 @@ const Navbar = ({ viewMode, setViewMode }) => {
                 {BRAND_CONFIG.version}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden md:block font-mono">Enterprise DFIR & SOC Platform</p>
+            <p className="text-[10px] text-slate-400 hidden md:block font-mono">Enterprise DFIR Platform</p>
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 pl-4 border-l border-slate-700/60 text-xs font-mono">
-          <span className="text-slate-500">Scope /</span>
-          <span className="text-slate-200 font-semibold">{getBreadcrumb()}</span>
+        {/* Top Main Menu Workstation Switcher Buttons */}
+        <div className="hidden lg:flex items-center p-1 bg-[#0B101D] border border-[#23314D] rounded-lg gap-1 font-mono text-xs">
+          {WORKSTATION_MODES.map((mode) => {
+            const Icon = mode.icon;
+            const isActive = workstationMode === mode.id;
+            return (
+              <button
+                key={mode.id}
+                onClick={() => handleSwitchWorkstation(mode)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded transition-all text-xs font-semibold ${
+                  isActive
+                    ? mode.activeBg + ' shadow-sm'
+                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                }`}
+                title={`Switch to ${mode.label} Workstation View`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{mode.short}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Center Global Search Bar */}
-      <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center relative max-w-md w-full mx-4">
+      {/* Center Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="hidden xl:flex items-center relative max-w-sm w-full mx-4">
         <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3.5 pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search incident ID, IOC hash, IP, domain..."
-          className="w-full pl-9 pr-14 py-1.5 text-xs bg-[#0B101D] border border-[#23314D] rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all font-mono"
+          placeholder="Search incident ID, IOC hash, domain..."
+          className="w-full pl-9 pr-14 py-1.5 text-xs bg-[#0B101D] border border-[#23314D] rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
         />
         <kbd className="absolute right-3 px-1.5 py-0.5 text-[9px] font-mono text-slate-400 bg-slate-800 rounded border border-slate-700 pointer-events-none font-semibold flex items-center gap-1">
           <Command className="w-2.5 h-2.5" /> K
         </kbd>
       </form>
 
-      {/* Right Telemetry & User Controls */}
+      {/* Right Controls & User Profile */}
       <div className="flex items-center gap-3">
-        {/* Live Operational Status */}
-        <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-semibold">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span>SOC Active</span>
+        {/* Active Workstation Indicator Badge */}
+        <div className={`hidden sm:flex items-center gap-2 px-3 py-1 rounded-lg border text-xs font-mono font-semibold ${activeWorkstation.color}`}>
+          <ActiveIcon className="w-3.5 h-3.5" />
+          <span>{activeWorkstation.short} Mode</span>
         </div>
 
         {/* View Mode Switcher */}
@@ -118,19 +159,7 @@ const Navbar = ({ viewMode, setViewMode }) => {
           </button>
         </div>
 
-        {/* System Manual PDF Download */}
-        <a
-          href="/api/system/download-manual-pdf"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium transition-all"
-          title="Download Technical Forensic Manual"
-        >
-          <FileText className="w-3.5 h-3.5 text-blue-400" />
-          <span className="hidden md:inline">Manual</span>
-        </a>
-
-        {/* User Profile Dropdown */}
+        {/* User Profile Pill */}
         {user ? (
           <div className="relative">
             <button
@@ -148,21 +177,21 @@ const Navbar = ({ viewMode, setViewMode }) => {
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-[#0F172A] border border-[#23314D] rounded-lg shadow-2xl py-1.5 z-50">
-                <div className="px-3 py-2 border-b border-slate-800 sm:hidden">
-                  <p className="font-semibold text-xs text-slate-200">{user.full_name || user.username}</p>
-                  <p className="text-[10px] text-cyan-400 font-mono capitalize">{user.role}</p>
+              <div className="absolute right-0 mt-2 w-48 bg-[#0F172A] border border-[#23314D] rounded-lg shadow-2xl py-1.5 z-50 font-mono text-xs">
+                <div className="px-3 py-2 border-b border-slate-800">
+                  <p className="font-semibold text-slate-200">{user.full_name || user.username}</p>
+                  <p className="text-[10px] text-cyan-400 capitalize">{user.role}</p>
                 </div>
                 <button
                   onClick={() => { setShowProfileMenu(false); navigate('/cases'); }}
-                  className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:bg-slate-800 flex items-center gap-2 transition-colors"
+                  className="w-full px-3.5 py-2 text-left text-slate-300 hover:bg-slate-800 flex items-center gap-2 transition-colors"
                 >
                   <User className="w-3.5 h-3.5 text-slate-400" />
-                  My Incidents
+                  My Incident Board
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full px-3.5 py-2 text-left text-xs text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 font-semibold transition-colors"
+                  className="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 font-semibold transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5 text-rose-400" />
                   Sign Out
@@ -173,7 +202,7 @@ const Navbar = ({ viewMode, setViewMode }) => {
         ) : (
           <button
             onClick={() => navigate('/login')}
-            className="px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+            className="px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm font-mono"
           >
             Sign In
           </button>
