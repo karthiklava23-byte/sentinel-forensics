@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Shield, Lock, Mail, Terminal } from 'lucide-react';
+import { Shield, Lock, Mail, ArrowRight, Activity, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BRAND_CONFIG } from '../config/brand';
 
@@ -20,72 +20,110 @@ const Login = () => {
       await login(email, password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Invalid email or password credentials');
+      setError(err.response?.data?.detail || 'Invalid authentication credentials. Check email and password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#080b11] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#0f1420] border border-cyan-500/30 rounded-2xl shadow-cyber-glow p-8 space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/40 flex items-center justify-center text-cyan-400 mx-auto shadow-cyber-glow">
-            <Shield className="w-6 h-6" />
+    <div className="min-h-screen bg-[#0b0e14] flex flex-col justify-between p-4 sm:p-6 font-sans">
+      {/* Top Header Bar */}
+      <div className="max-w-6xl w-full mx-auto flex items-center justify-between py-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <Shield className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl font-mono font-bold tracking-wider text-slate-100">
-            {BRAND_CONFIG.shortName} <span className="text-cyan-400">{BRAND_CONFIG.accentText}</span>
-          </h1>
-          <p className="text-xs font-mono text-slate-400 uppercase">{BRAND_CONFIG.tagline}</p>
+          <div>
+            <span className="font-bold text-slate-100 text-sm tracking-tight">{BRAND_CONFIG.shortName}</span>
+            <span className="text-xs text-blue-400 font-semibold ml-1.5">{BRAND_CONFIG.accentText}</span>
+          </div>
         </div>
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Platform Online
+        </div>
+      </div>
 
-        {error && (
-          <div className="p-3 bg-rose-950/60 border border-rose-500/40 text-rose-300 font-mono text-xs rounded">
-            {error}
+      {/* Main Authentication Container */}
+      <div className="w-full max-w-md mx-auto my-auto">
+        <div className="soc-card p-8 space-y-6">
+          <div className="space-y-1.5">
+            <h1 className="text-xl font-bold text-slate-100 tracking-tight">Security Gateway Authentication</h1>
+            <p className="text-xs text-slate-400">Sign in to access your role-based security workspace</p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
-          <div>
-            <label className="block text-slate-400 mb-1">OPERATOR EMAIL</label>
-            <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded pl-9 pr-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500"
-              />
+          {error && (
+            <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs rounded-lg flex items-start gap-2">
+              <Shield className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
-          </div>
+          )}
 
-          <div>
-            <label className="block text-slate-400 mb-1">ACCESS TOKEN / PASSWORD</label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded pl-9 pr-3 py-2 text-slate-200 focus:outline-none focus:border-cyan-500"
-              />
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <div>
+              <label className="block font-medium text-slate-300 mb-1.5">Operator Email Address</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="operator@company.com"
+                  className="w-full bg-[#0a0d13] border border-[#1e2638] rounded-lg pl-9 pr-3 py-2.5 text-slate-100 focus:outline-none focus:border-blue-500 placeholder:text-slate-600 transition-colors"
+                />
+              </div>
             </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="font-medium text-slate-300">Password</label>
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full bg-[#0a0d13] border border-[#1e2638] rounded-lg pl-9 pr-3 py-2.5 text-slate-100 focus:outline-none focus:border-blue-500 placeholder:text-slate-600 transition-colors"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs tracking-wide flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Activity className="w-4 h-4 animate-spin text-white" />
+                  <span>Authenticating Operator...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Platform</span>
+                  <ArrowRight className="w-4 h-4 text-blue-200" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="pt-2 border-t border-[#1e2638] flex items-center justify-between text-xs text-slate-400">
+            <span>New operator?</span>
+            <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+              Register Account &rarr;
+            </Link>
           </div>
+        </div>
+      </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2.5 rounded bg-cyan-500 hover:bg-cyan-400 text-black font-bold font-mono tracking-wider shadow-cyber-glow transition-all"
-          >
-            {loading ? 'AUTHENTICATING SYSTEM...' : 'AUTHENTICATE & ENTER'}
-          </button>
-        </form>
-
-        <p className="text-center font-mono text-xs text-slate-500 pt-2">
-          Need access? <Link to="/register" className="text-cyan-400 hover:underline">Register Account</Link>
-        </p>
+      {/* Footer */}
+      <div className="max-w-6xl w-full mx-auto text-center py-2 text-[11px] text-slate-500 font-mono">
+        SENTINEL AI Digital Forensics & Security Operations Platform &bull; Restricted SOC Access
       </div>
     </div>
   );

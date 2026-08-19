@@ -130,6 +130,63 @@ const NetworkForensicsPage = () => {
             </div>
           </div>
 
+          {/* Captured HTTP Requests */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold text-slate-200 uppercase flex items-center justify-between">
+              <span>CAPTURED HTTP REQUESTS ({result.http_requests?.length || 0})</span>
+              <span className="text-[10px] text-slate-500 font-mono font-normal">Extracted from TCP Packets</span>
+            </h4>
+            {(!result.http_requests || result.http_requests.length === 0) ? (
+              <div className="p-4 bg-[#0a0d13] border border-[#1e2638] rounded-lg text-slate-500 text-center text-xs">
+                No HTTP web requests detected in this packet capture stream.
+              </div>
+            ) : (
+              <div className="p-3 bg-[#0a0d13] border border-[#1e2638] rounded-lg overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-[#1e2638] text-slate-400 font-mono text-[10px]">
+                      <th className="py-2 px-2">METHOD</th>
+                      <th className="py-2 px-2">TARGET URL</th>
+                      <th className="py-2 px-2">SOURCE IP</th>
+                      <th className="py-2 px-2">USER AGENT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.http_requests.map((req, idx) => (
+                      <tr key={idx} className="border-b border-[#1e2638]/50 last:border-0 hover:bg-[#121721]">
+                        <td className="py-2 px-2 font-mono font-bold text-blue-400">{req.method}</td>
+                        <td className="py-2 px-2 font-mono text-slate-200 truncate max-w-xs">{req.url}</td>
+                        <td className="py-2 px-2 font-mono text-slate-400">{req.source_ip}</td>
+                        <td className="py-2 px-2 font-mono text-slate-500 truncate max-w-xs">{req.user_agent}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Captured DNS Queries */}
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold text-slate-200 uppercase flex items-center justify-between">
+              <span>RESOLVED DNS QUERIES ({result.dns_queries?.length || 0})</span>
+              <span className="text-[10px] text-slate-500 font-mono font-normal">Extracted UDP Port 53 QNAMEs</span>
+            </h4>
+            {(!result.dns_queries || result.dns_queries.length === 0) ? (
+              <div className="p-4 bg-[#0a0d13] border border-[#1e2638] rounded-lg text-slate-500 text-center text-xs">
+                No DNS queries detected in this packet capture stream.
+              </div>
+            ) : (
+              <div className="p-3 bg-[#0a0d13] border border-[#1e2638] rounded-lg flex flex-wrap gap-2">
+                {result.dns_queries.map((domain, idx) => (
+                  <span key={idx} className="px-2.5 py-1 rounded bg-[#161c28] border border-[#222b3e] text-slate-300 font-mono text-xs">
+                    {domain}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Attack Patterns Detected */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-slate-200 uppercase flex items-center gap-2">
@@ -137,20 +194,26 @@ const NetworkForensicsPage = () => {
               DETECTED ATTACK PATTERNS ({result.suspicious_activities.length})
             </h4>
 
-            <div className="space-y-2">
-              {result.suspicious_activities.map((act, idx) => (
-                <div key={idx} className="p-4 bg-rose-950/30 border border-rose-500/40 rounded-lg space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-rose-400 font-bold">{act.type}</span>
-                    <ThreatBadge level={act.severity} />
+            {result.suspicious_activities.length === 0 ? (
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-xs">
+                Clean Packet Capture: No malicious attack signatures, C2 beaconing, or unauthorized port scans detected.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {result.suspicious_activities.map((act, idx) => (
+                  <div key={idx} className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-lg space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-rose-400 font-bold">{act.type}</span>
+                      <ThreatBadge level={act.severity} />
+                    </div>
+                    <p className="text-slate-300 text-xs">{act.details}</p>
+                    <p className="text-[10px] font-mono text-slate-400">
+                      SOURCE: <span className="text-blue-400">{act.source_ip}</span> &rarr; TARGET: <span className="text-rose-300">{act.target_ip}</span>
+                    </p>
                   </div>
-                  <p className="text-slate-300">{act.details}</p>
-                  <p className="text-[10px] text-slate-400">
-                    SOURCE: <span className="text-cyan-400">{act.source_ip}</span> → TARGET: <span className="text-rose-300">{act.target_ip}</span>
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

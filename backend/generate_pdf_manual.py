@@ -211,6 +211,19 @@ def build_manual_pdf(filename="SENTINEL_AI_System_Directory_and_Role_Capabilitie
         body_style
     ))
 
+    # 1.1 DATABASE & PERSISTENCE ARCHITECTURE
+    story.append(Paragraph("1.1 Database Storage &amp; Live Data Persistence Architecture", h2_style))
+    db_points = [
+        "<b>💾 Embedded Primary Database (SQLite):</b> Powered by Python standard library <code>sqlite3</code> using ACID-compliant <code>forensics_platform.db</code> with Write-Ahead Logging (<code>PRAGMA journal_mode=WAL;</code>) for high concurrency and zero crash data loss.",
+        "<b>🔄 Enterprise Auto-Fallback (MongoDB):</b> Automatically connects to MongoDB via <code>pymongo</code> if an active MongoDB instance is detected at <code>mongodb://localhost:27017</code>. If offline, seamlessly switches to embedded SQLite without requiring any user setup.",
+        "<b>📑 Atomic JSON Backup (forensics_storage.json):</b> Performs atomic double-write snapshots to <code>forensics_storage.json</code> on every database write operation to provide human-readable data recovery.",
+        "<b>🛡️ Live Data Retention Across Updates:</b> Startup hooks verify database integrity without purging user data, ensuring 100% of case history, evidence, security audit logs, dashboard metrics, and analyst alert triage statuses survive code updates and server restarts."
+    ]
+    for pt in db_points:
+        story.append(Paragraph(f"• {pt}", bullet_style))
+
+    story.append(Spacer(1, 6))
+
     # -------------------------------------------------------------------------
     # SECTION 2: WHAT CAN BE ACHIEVED BY DIFFERENT ROLES (POINT-WISE)
     # -------------------------------------------------------------------------

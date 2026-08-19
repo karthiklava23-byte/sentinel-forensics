@@ -163,6 +163,13 @@ def perform_triage_action(
         }
     })
 
+    db.insert_one("logs", {
+        "user_email": current_user.get("email"),
+        "action": f"ALERT_TRIAGE_{req.action}",
+        "details": f"Alert {alert_id} '{alert.get('title')}' triaged as {new_status}. Notes: {req.notes or 'None'}",
+        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
     return {
         "message": f"Alert {alert_id} triaged as {new_status}",
         "alert_id": alert_id,

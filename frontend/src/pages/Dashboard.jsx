@@ -18,7 +18,8 @@ import {
   Sparkles,
   XCircle,
   Hash,
-  Crosshair
+  Crosshair,
+  LayoutDashboard
 } from 'lucide-react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
@@ -62,11 +63,11 @@ const Dashboard = () => {
 
   if (loading || !data) {
     return (
-      <div className="p-8 font-mono text-cyan-400 flex items-center justify-center min-h-[60vh]">
-        <div className="flex items-center gap-3">
-          <Activity className="w-6 h-6 animate-spin text-cyan-400" />
-          <span>LOADING TELEMETRY DASHBOARD...</span>
+      <div className="p-12 text-slate-400 flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 animate-pulse">
+          <Activity className="w-6 h-6 animate-spin" />
         </div>
+        <p className="text-sm font-medium text-slate-300">Loading Telemetry & Incident Data...</p>
       </div>
     );
   }
@@ -74,10 +75,10 @@ const Dashboard = () => {
   const { metrics = {}, threat_distribution = {}, evidence_type_breakdown = {}, recent_cases = [], recent_scans = [], malware_stats = {}, threat_intel_stats = {}, is_admin_view } = data || {};
 
   const pieData = [
-    { name: 'CRITICAL', value: threat_distribution.CRITICAL, color: '#ff2a6d' },
-    { name: 'HIGH', value: threat_distribution.HIGH, color: '#f59e0b' },
-    { name: 'MEDIUM', value: threat_distribution.MEDIUM, color: '#eab308' },
-    { name: 'LOW', value: threat_distribution.LOW, color: '#10b981' },
+    { name: 'Critical', value: threat_distribution.CRITICAL, color: '#f43f5e' },
+    { name: 'High',     value: threat_distribution.HIGH,     color: '#f59e0b' },
+    { name: 'Medium',   value: threat_distribution.MEDIUM,   color: '#eab308' },
+    { name: 'Low',      value: threat_distribution.LOW,      color: '#10b981' },
   ].filter(item => item.value > 0);
 
   const barData = [
@@ -91,41 +92,48 @@ const Dashboard = () => {
   return (
     <div className="p-6 space-y-6 font-sans">
 
-      {/* Personal Identity Banner */}
+      {/* Identity Banner */}
       {!is_admin_view && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-cyan-950/30 border border-cyan-800/40 rounded-xl">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-            {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#111726] border border-slate-800 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xs">
+              {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-200">{user?.full_name || user?.email}</p>
+              <p className="text-[11px] text-slate-400">Operator Dashboard — assigned cases & forensic scan telemetry</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-mono font-bold text-cyan-300">{user?.full_name || user?.email}</p>
-            <p className="text-[10px] text-slate-500 font-mono">MY PERSONAL DASHBOARD &mdash; showing your cases, evidence &amp; scans only</p>
-          </div>
-          <span className="ml-auto text-[10px] font-mono px-2 py-1 bg-cyan-950 border border-cyan-700/40 text-cyan-400 rounded">{user?.role?.toUpperCase() || 'USER'}</span>
+          <span className="text-xs px-2.5 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-full font-medium capitalize">{user?.role || 'Operator'}</span>
         </div>
       )}
       {is_admin_view && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-amber-950/30 border border-amber-700/40 rounded-xl">
-          <ShieldAlert className="w-5 h-5 text-amber-400" />
-          <div>
-            <p className="text-xs font-mono font-bold text-amber-300">GLOBAL ADMIN VIEW</p>
-            <p className="text-[10px] text-slate-500 font-mono">Showing all users' combined data across the entire platform</p>
+        <div className="flex items-center justify-between gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-amber-300">Global Administrative View</p>
+              <p className="text-[11px] text-slate-400">Aggregated multi-user telemetry and system-wide incident metrics</p>
+            </div>
           </div>
           <button
             onClick={() => navigate('/admin/users')}
-            className="ml-auto text-[10px] font-mono px-3 py-1.5 bg-amber-950 border border-amber-700/50 text-amber-400 rounded hover:bg-amber-900 transition-all"
-          >VIEW USER DASHBOARDS →</button>
+            className="text-xs font-medium px-3 py-1.5 bg-[#18202e] border border-slate-700 text-amber-400 rounded-xl hover:bg-[#202b3d] transition-all"
+          >
+            Manage User Roles &rarr;
+          </button>
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      {/* Top Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
         <div>
-          <h1 className="text-2xl font-mono font-bold text-slate-100 flex items-center gap-2">
-            CYBER INCIDENT COMMAND CENTER
+          <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2.5 tracking-tight">
+            <LayoutDashboard className="w-5 h-5 text-blue-400" />
+            Security Operations Center
           </h1>
-          <p className="text-xs font-mono text-slate-400">
-            Real-time Threat Correlation, Evidence Processing &amp; Forensic Analytics
+          <p className="text-xs text-slate-400 mt-1">
+            Real-time Threat Analytics, Forensic Artifact Processing & Incident Response Telemetry
           </p>
         </div>
 
@@ -133,254 +141,182 @@ const Dashboard = () => {
           {user?.role === 'analyst' ? (
             <button
               onClick={() => navigate('/analyst')}
-              className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-cyber-glow transition-all"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
             >
               <Crosshair className="w-4 h-4" />
-              OPEN ANALYST SOC WORKSPACE
+              Open Analyst Workspace
             </button>
           ) : (
             <button
               onClick={() => setIsCaseModalOpen(true)}
-              className="px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-cyber-glow transition-all"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all"
             >
               <Plus className="w-4 h-4" />
-              NEW INVESTIGATION CASE
+              New Case / Incident
             </button>
           )}
         </div>
       </div>
 
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+      {/* KPI Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="soc-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-slate-400 uppercase">ACTIVE CASES</p>
-            <h3 className="text-2xl font-mono font-bold text-slate-100 mt-1">{metrics.open_cases}</h3>
-            <p className="text-[11px] font-mono text-cyan-400 mt-1">Out of {metrics.total_cases} Total Cases</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">ACTIVE CASES</p>
+            <h3 className="text-2xl font-bold text-slate-100 mt-1">{metrics.open_cases}</h3>
+            <p className="text-[11px] text-blue-400 mt-0.5">{metrics.total_cases} Total Recorded</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-            <FolderGit2 className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+            <FolderGit2 className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div className="soc-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-slate-400 uppercase">CRITICAL THREATS</p>
-            <h3 className="text-2xl font-mono font-bold text-rose-400 mt-1">{metrics.critical_cases}</h3>
-            <p className="text-[11px] font-mono text-rose-400/80 mt-1">High Severity Incidents</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">CRITICAL THREATS</p>
+            <h3 className="text-2xl font-bold text-rose-400 mt-1">{metrics.critical_cases}</h3>
+            <p className="text-[11px] text-rose-400/80 mt-0.5">High Severity</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-neon-red">
-            <ShieldAlert className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+            <ShieldAlert className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div className="soc-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-slate-400 uppercase">EVIDENCE ARTIFACTS</p>
-            <h3 className="text-2xl font-mono font-bold text-slate-100 mt-1">{metrics.total_evidence_artifacts}</h3>
-            <p className="text-[11px] font-mono text-emerald-400 mt-1">Parsed & Analyzed</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">ARTIFACTS</p>
+            <h3 className="text-2xl font-bold text-slate-100 mt-1">{metrics.total_evidence_artifacts}</h3>
+            <p className="text-[11px] text-emerald-400 mt-0.5">Parsed & Analyzed</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <FileText className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <FileText className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div className="soc-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-slate-400 uppercase">AI ENGINE CORRELATION</p>
-            <h3 className="text-2xl font-mono font-bold text-purple-400 mt-1">{metrics.ai_correlation_jobs}</h3>
-            <p className="text-[11px] font-mono text-purple-400/80 mt-1">Timeline Models Built</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI CORRELATIONS</p>
+            <h3 className="text-2xl font-bold text-purple-400 mt-1">{metrics.ai_correlation_jobs}</h3>
+            <p className="text-[11px] text-purple-400/80 mt-0.5">Synthesized</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-neon-purple">
-            <Cpu className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+            <Cpu className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Malware Forensics KPI */}
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div className="soc-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-slate-400 uppercase">MALWARE SAMPLES</p>
-            <h3 className="text-2xl font-mono font-bold text-orange-400 mt-1">{metrics.malware_samples_analyzed || 0}</h3>
-            <p className="text-[11px] font-mono text-orange-400/80 mt-1">{malware_stats?.high_risk_count || 0} High-Risk Detected</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">MALWARE SAMPLES</p>
+            <h3 className="text-2xl font-bold text-amber-400 mt-1">{metrics.malware_samples_analyzed || 0}</h3>
+            <p className="text-[11px] text-amber-400/80 mt-0.5">{malware_stats?.high_risk_count || 0} High Risk</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400">
-            <Bug className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <Bug className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Threat Intelligence KPI */}
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div className="soc-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-mono text-slate-400 uppercase">MALICIOUS IOCs</p>
-            <h3 className="text-2xl font-mono font-bold text-emerald-400 mt-1">{metrics.malicious_iocs_flagged || 0}</h3>
-            <p className="text-[11px] font-mono text-emerald-400/80 mt-1">{metrics.threat_intel_queries || 0} Total Queried</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">MALICIOUS IOCS</p>
+            <h3 className="text-2xl font-bold text-emerald-400 mt-1">{metrics.malicious_iocs_flagged || 0}</h3>
+            <p className="text-[11px] text-emerald-400/80 mt-0.5">{metrics.threat_intel_queries || 0} Queried</p>
           </div>
-          <div className="w-11 h-11 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <ShieldCheck className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      {/* Malware & Threat Intel Stats Row */}
-      {(malware_stats || threat_intel_stats) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono">
-          {/* Malware Stats */}
-          <div className="cyber-card p-5 rounded-xl border border-orange-900/30">
-            <div className="flex items-center gap-2 mb-4">
-              <Bug className="w-4 h-4 text-orange-400" />
-              <h3 className="text-xs font-bold text-slate-200">MALWARE FORENSICS STATISTICS</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Samples Analyzed',   value: malware_stats?.total_samples_analyzed || 0,   color: 'text-orange-400' },
-                { label: 'High Risk Binaries', value: malware_stats?.high_risk_count || 0,           color: 'text-red-400' },
-                { label: 'Avg Entropy',        value: malware_stats?.avg_entropy || '0.00',           color: 'text-yellow-400' },
-                { label: 'Packed Samples',     value: malware_stats?.packed_samples || 0,            color: 'text-orange-400' },
-                { label: 'Flagged API Calls',  value: malware_stats?.total_flagged_api_calls || 0,  color: 'text-red-400' },
-                { label: 'Critical Malware',   value: malware_stats?.critical_malware || 0,          color: 'text-red-400' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-slate-900/60 rounded-lg p-3 border border-slate-800">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</p>
-                  <p className={`text-lg font-bold font-mono mt-1 ${color}`}>{value}</p>
-                </div>
-              ))}
-            </div>
-            {malware_stats?.detected_malware_families?.length > 0 && (
-              <div className="mt-3">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Detected Families</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {malware_stats.detected_malware_families.map((f, i) => (
-                    <span key={i} className="text-[10px] font-mono px-2 py-0.5 bg-red-950/40 border border-red-800/40 text-red-300 rounded">{f}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Threat Intel Stats */}
-          <div className="cyber-card p-5 rounded-xl border border-emerald-900/30">
-            <div className="flex items-center gap-2 mb-4">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-xs font-bold text-slate-200">THREAT INTELLIGENCE STATISTICS</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'IOCs Queried',     value: threat_intel_stats?.total_iocs_queried  || 0,  color: 'text-cyan-400' },
-                { label: 'Malicious IOCs',   value: threat_intel_stats?.malicious_ioc_count || 0,  color: 'text-red-400' },
-                { label: 'Suspicious IOCs',  value: threat_intel_stats?.suspicious_ioc_count || 0, color: 'text-orange-400' },
-                { label: 'Clean IOCs',       value: threat_intel_stats?.clean_ioc_count     || 0,  color: 'text-green-400' },
-              ].map(({ label, value, color }) => (
-                <div key={label} className="bg-slate-900/60 rounded-lg p-3 border border-slate-800">
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</p>
-                  <p className={`text-lg font-bold font-mono mt-1 ${color}`}>{value}</p>
-                </div>
-              ))}
-            </div>
-            {threat_intel_stats?.active_attack_campaigns?.length > 0 && (
-              <div className="mt-3">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Active Campaigns</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {threat_intel_stats.active_attack_campaigns.map((c, i) => (
-                    <span key={i} className="text-[10px] font-mono px-2 py-0.5 bg-orange-950/40 border border-orange-800/40 text-orange-300 rounded">{c}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Forensic Workbenches Quick Launch Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono">
+      {/* Forensic Engines Quick Launch Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div 
           onClick={() => navigate('/email-forensics')}
-          className="cyber-card p-4 rounded-xl border border-slate-800 hover:border-cyan-500/50 cursor-pointer transition-all group flex items-center justify-between"
+          className="soc-card-interactive p-4 cursor-pointer flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-black transition-all">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
               <Mail className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-200">Email Forensics Workbench</h4>
-              <p className="text-[11px] text-slate-400">Inspect .EML headers & SPF/DKIM</p>
+              <h4 className="text-xs font-bold text-slate-200">Email Forensics</h4>
+              <p className="text-[11px] text-slate-400">SPF/DKIM & EML analysis</p>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400" />
+          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-blue-400 transition-colors" />
         </div>
 
         <div 
           onClick={() => navigate('/url-forensics')}
-          className="cyber-card p-4 rounded-xl border border-slate-800 hover:border-cyan-500/50 cursor-pointer transition-all group flex items-center justify-between"
+          className="soc-card-interactive p-4 cursor-pointer flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-black transition-all">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
               <Globe className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-200">URL Threat Scanner</h4>
-              <p className="text-[11px] text-slate-400">Analyze domain age & WHOIS risk</p>
+              <h4 className="text-xs font-bold text-slate-200">URL Threat Analysis</h4>
+              <p className="text-[11px] text-slate-400">Domain WHOIS risk score</p>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400" />
+          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition-colors" />
         </div>
 
         <div
           onClick={() => navigate('/network-forensics')}
-          className="cyber-card p-4 rounded-xl border border-slate-800 hover:border-cyan-500/50 cursor-pointer transition-all group flex items-center justify-between"
+          className="soc-card-interactive p-4 cursor-pointer flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:bg-purple-500 group-hover:text-black transition-all">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all">
               <Network className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-xs font-bold text-slate-200">Network PCAP Parser</h4>
-              <p className="text-[11px] text-slate-400">Analyze packets & C2 beaconing</p>
+              <p className="text-[11px] text-slate-400">Packet C2 beaconing</p>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400" />
+          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-purple-400 transition-colors" />
         </div>
 
         <div
           onClick={() => navigate('/malware-forensics')}
-          className="cyber-card p-4 rounded-xl border border-slate-800 hover:border-orange-500/50 cursor-pointer transition-all group flex items-center justify-between"
+          className="soc-card-interactive p-4 cursor-pointer flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-black transition-all">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all">
               <Bug className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-xs font-bold text-slate-200">Malware Forensics</h4>
-              <p className="text-[11px] text-slate-400">Binary analysis & risk scoring</p>
+              <p className="text-[11px] text-slate-400">Binary static analysis</p>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-orange-400" />
+          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-amber-400 transition-colors" />
         </div>
 
         <div
           onClick={() => navigate('/threat-intelligence')}
-          className="cyber-card p-4 rounded-xl border border-slate-800 hover:border-emerald-500/50 cursor-pointer transition-all group flex items-center justify-between"
+          className="soc-card-interactive p-4 cursor-pointer flex items-center justify-between group"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-black transition-all">
+            <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <h4 className="text-xs font-bold text-slate-200">Threat Intelligence</h4>
-              <p className="text-[11px] text-slate-400">IOC lookup · VT · AbuseIPDB · OTX</p>
+              <p className="text-[11px] text-slate-400">VT, OTX & AbuseIPDB</p>
             </div>
           </div>
-          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400" />
+          <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-rose-400 transition-colors" />
         </div>
       </div>
 
       {/* Analytics Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pie Chart: Threat Severity Distribution */}
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 font-mono">
+        <div className="soc-card p-5">
           <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-rose-400" />
-            THREAT SEVERITY DISTRIBUTION
+            Threat Severity Distribution
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -389,9 +325,9 @@ const Dashboard = () => {
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={5}
+                  innerRadius={65}
+                  outerRadius={95}
+                  paddingAngle={6}
                   dataKey="value"
                 >
                   {pieData.map((entry, index) => (
@@ -399,190 +335,145 @@ const Dashboard = () => {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f1420', borderColor: '#1e293b', color: '#fff' }}
+                  contentStyle={{ backgroundColor: '#111726', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex justify-center gap-4 text-xs mt-2">
+          <div className="flex justify-center gap-6 text-xs mt-2">
             {pieData.map((item) => (
-              <div key={item.name} className="flex items-center gap-1.5">
+              <div key={item.name} className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
-                <span className="text-slate-300">{item.name}: {item.value}</span>
+                <span className="text-slate-300 font-medium">{item.name}: <span className="font-bold">{item.value}</span></span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Bar Chart: Forensic Evidence Distribution */}
-        <div className="cyber-card p-5 rounded-xl border border-slate-800 font-mono">
+        <div className="soc-card p-5">
           <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-cyan-400" />
-            PARSED EVIDENCE ARTIFACT TYPES
+            <FileText className="w-4 h-4 text-blue-400" />
+            Parsed Evidence Artifact Types
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 11 }} />
                 <YAxis stroke="#94a3b8" allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f1420', borderColor: '#1e293b', color: '#fff' }}
+                  contentStyle={{ backgroundColor: '#111726', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '12px' }}
                 />
-                <Bar dataKey="count" fill="#00f0ff" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* Active Investigations Quick List & Audit Logs */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono text-xs">
-        {/* Recent Cases Section — visible to Investigators and Admins */}
-        {user?.role === 'analyst' ? (
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-3 font-mono">
+      {/* Incidents Table & Scan Log Stream */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-xs">
+        {/* Recent Cases Section */}
+        <div className="lg:col-span-2 soc-card p-5">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-              <Crosshair className="w-4 h-4 text-cyan-400" />
-              ANALYST SOC TRIAGE &amp; THREAT HUNTING TOOLS
+              <FolderGit2 className="w-4 h-4 text-blue-400" />
+              Recent Incidents & Cases
             </h3>
-            <p className="text-xs text-slate-400">
-              Access real-time alert queue, craft YARA/Sigma detection rules, parse SIEM logs, audit attack surface, and generate 1-click containment playbooks.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
-                ⚡ Triage Queue →
-              </button>
-              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
-                🏹 YARA / Sigma Rules →
-              </button>
-              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
-                📜 SIEM Log Parser →
-              </button>
-              <button onClick={() => navigate('/analyst')} className="p-3 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-lg text-left text-xs font-mono text-cyan-400 font-bold">
-                🤖 SOAR Playbooks →
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/cases')}
+              className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1 font-medium transition-colors"
+            >
+              View All Cases ({metrics.total_cases}) &rarr;
+            </button>
           </div>
-        ) : (
-          <div className="cyber-card p-5 rounded-xl border border-slate-800">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-mono font-bold text-slate-200 flex items-center gap-2">
-                <FolderGit2 className="w-4 h-4 text-cyan-400" />
-                RECENT INVESTIGATION INCIDENTS
-              </h3>
-              <button
-                onClick={() => navigate('/cases')}
-                className="text-cyan-400 hover:underline text-xs flex items-center gap-1 font-mono"
-              >
-                VIEW ALL CASES ({metrics.total_cases})
-              </button>
-            </div>
 
-            <div className="overflow-x-auto font-mono">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px]">
-                    <th className="py-2.5 px-3">CASE ID</th>
-                    <th className="py-2.5 px-3">TITLE / INCIDENT</th>
-                    <th className="py-2.5 px-3">THREAT LEVEL</th>
-                    <th className="py-2.5 px-3">STATUS</th>
-                    <th className="py-2.5 px-3 text-right">ACTION</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider font-semibold">
+                  <th className="py-2.5 px-3">Case ID</th>
+                  <th className="py-2.5 px-3">Title / Incident</th>
+                  <th className="py-2.5 px-3">Threat Level</th>
+                  <th className="py-2.5 px-3">Status</th>
+                  <th className="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {recent_cases.map((c) => (
+                  <tr key={c.id} className="hover:bg-[#161e31] transition-colors">
+                    <td className="py-3 px-3 text-blue-400 font-mono font-semibold">{c.case_number}</td>
+                    <td className="py-3 px-3 text-slate-200 max-w-xs truncate font-medium">{c.title}</td>
+                    <td className="py-3 px-3">
+                      <ThreatBadge level={c.priority} />
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#182133] border border-slate-700 text-slate-300 text-[10px] font-medium capitalize">
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <button
+                        onClick={() => navigate(`/cases/${c.id}`)}
+                        className="px-3 py-1 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/20 hover:bg-blue-600/20 text-xs font-medium transition-all"
+                      >
+                        Investigate
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {recent_cases.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-900/50 transition-colors">
-                      <td className="py-3 px-3 text-cyan-400 font-bold">{c.case_number}</td>
-                      <td className="py-3 px-3 text-slate-200 max-w-xs truncate">{c.title}</td>
-                      <td className="py-3 px-3">
-                        <ThreatBadge level={c.priority} />
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300 font-bold text-[10px]">
-                          {c.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        <button
-                          onClick={() => navigate(`/cases/${c.id}`)}
-                          className="px-2.5 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 hover:bg-cyan-900 text-[11px]"
-                        >
-                          INVESTIGATE
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {recent_cases.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="py-6 text-center text-slate-500">No active cases recorded.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
 
-        {/* My Scan History — visible to all users for their own scans */}
-        <div className="cyber-card p-5 rounded-xl border border-slate-800">
-          <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-cyan-400" />
-            {is_admin_view ? 'RECENT PLATFORM SCANS' : 'MY SCAN HISTORY'}
-            <span className="ml-auto text-[10px] px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400 rounded font-mono">
-              {(recent_scans || []).length} scans
+        {/* Scan Log Stream */}
+        <div className="soc-card p-5">
+          <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              {is_admin_view ? 'Platform Scans' : 'My Recent Scans'}
+            </span>
+            <span className="text-[11px] px-2.5 py-0.5 bg-[#182133] border border-slate-700 text-slate-300 rounded-full font-medium">
+              {(recent_scans || []).length} items
             </span>
           </h3>
-          <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
             {(recent_scans || []).length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-slate-600 text-xs font-mono">No scans recorded yet.</p>
-                <p className="text-slate-700 text-[10px] mt-1">Scan a URL, email, or malware file to see results here.</p>
+              <div className="text-center py-8">
+                <p className="text-slate-500 text-xs">No scan history recorded.</p>
+                <p className="text-slate-600 text-[11px] mt-1">Use any forensic engine above to run a scan.</p>
               </div>
             ) : (recent_scans || []).map((scan, idx) => {
-              const typeColors = { URL: 'text-blue-400 bg-blue-950/60 border-blue-800/50', EMAIL: 'text-cyan-400 bg-cyan-950/60 border-cyan-800/50', MALWARE: 'text-red-400 bg-red-950/60 border-red-800/50', PCAP: 'text-purple-400 bg-purple-950/60 border-purple-800/50' };
-              const riskColor = scan.risk_score >= 75 ? 'text-red-400' : scan.risk_score >= 50 ? 'text-orange-400' : scan.risk_score >= 25 ? 'text-yellow-400' : 'text-emerald-400';
+              const typeColors = { URL: 'text-blue-400 bg-blue-500/10 border-blue-500/20', EMAIL: 'text-purple-400 bg-purple-500/10 border-purple-500/20', MALWARE: 'text-rose-400 bg-rose-500/10 border-rose-500/20', PCAP: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
+              const riskColor = scan.risk_score >= 75 ? 'text-rose-400' : scan.risk_score >= 50 ? 'text-amber-400' : 'text-emerald-400';
               return (
-                <div key={scan.id || idx} className="flex items-center gap-3 p-2.5 rounded bg-slate-900/60 border border-slate-800/80 text-[11px]">
-                  <span className={`shrink-0 px-2 py-0.5 rounded border font-mono font-bold text-[10px] ${typeColors[scan.scan_type] || 'text-slate-400 bg-slate-800 border-slate-700'}`}>
-                    {scan.scan_type}
-                  </span>
-                  <span className="text-slate-300 truncate flex-1 font-mono">{scan.target}</span>
+                <div key={scan.id || idx} className="flex items-center justify-between p-2.5 rounded-xl bg-[#151c2c] border border-slate-800 text-[11px]">
+                  <div className="flex items-center gap-2 min-w-0 pr-2">
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${typeColors[scan.scan_type] || 'text-slate-400 bg-slate-800 border-slate-700'}`}>
+                      {scan.scan_type}
+                    </span>
+                    <span className="text-slate-200 truncate font-mono text-[11px]">{scan.target}</span>
+                  </div>
                   <span className={`shrink-0 font-bold font-mono ${riskColor}`}>{scan.risk_score}%</span>
-                  <span className="shrink-0 text-[9px] text-slate-500">{scan.scanned_at?.slice(0, 16)}</span>
                 </div>
               );
             })}
           </div>
         </div>
-
-        {/* Audit Log Stream — ADMIN ONLY */}
-        {isAdmin && (
-          <div className="cyber-card p-5 rounded-xl border border-slate-800">
-            <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-emerald-400" />
-              FORENSIC AUDIT LOGS
-              <span className="ml-auto text-[10px] px-2 py-0.5 bg-amber-950 border border-amber-700/50 text-amber-400 rounded font-mono">ADMIN ONLY</span>
-            </h3>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
-              {adminLogs.slice(0, 10).map((log, idx) => (
-                <div key={log.id || idx} className="p-2.5 rounded bg-slate-900/60 border border-slate-800/80 text-[11px]">
-                  <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
-                    <span className="text-cyan-400 font-semibold">{log.action}</span>
-                    <span>{log.timestamp}</span>
-                  </div>
-                  <p className="text-slate-300 leading-snug">{log.details}</p>
-                  <p className="text-[9px] text-slate-500 mt-1">BY: {log.user_email}</p>
-                </div>
-              ))}
-              {adminLogs.length === 0 && (
-                <p className="text-slate-600 text-[11px]">No audit log entries yet.</p>
-              )}
-            </div>
-          </div>
-        )}
       </div>
-
 
       <CaseModal
         isOpen={isCaseModalOpen}
         onClose={() => setIsCaseModalOpen(false)}
         onCaseCreated={(newCase) => {
-          fetchDashboard();
+          fetchDashboard(user);
           navigate(`/cases/${newCase.id}`);
         }}
       />

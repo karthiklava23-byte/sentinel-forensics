@@ -128,39 +128,39 @@ export default function AnalystPage() {
   return (
     <div className="p-6 space-y-6 font-sans max-w-7xl mx-auto">
       {/* Workspace Header */}
-      <div className="border-b border-slate-800 pb-5">
+      <div className="border-b border-[#1e2638] pb-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <Crosshair className="w-6 h-6 text-cyan-400" />
-              <h1 className="text-2xl font-mono font-bold text-slate-100">ANALYST SOC WORKSPACE</h1>
-              <span className="px-2.5 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-cyan-400 text-xs font-mono font-bold">
-                REAL-TIME TRIAGE &amp; HUNTING
+            <div className="flex items-center gap-2.5">
+              <Crosshair className="w-5 h-5 text-blue-400" />
+              <h1 className="text-xl font-bold text-slate-100 tracking-tight">SOC Analyst Operations Hub</h1>
+              <span className="px-2.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold">
+                REAL-TIME TRIAGE & HUNTING
               </span>
             </div>
-            <p className="text-xs font-mono text-slate-400 mt-1">
-              Rapid Alert Processing • YARA/Sigma Rule Crafting • SIEM Log Parsing • Attack Surface Auditing • SOAR Containment Playbooks
+            <p className="text-xs text-slate-400 mt-1">
+              Rapid Alert Processing &bull; YARA/Sigma Rule Crafting &bull; SIEM Log Parsing &bull; Attack Surface Auditing &bull; SOAR Containment Playbooks
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={fetchAlerts}
-              className="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-300 font-mono text-xs flex items-center gap-1.5 transition-all"
+              className="px-3 py-1.5 rounded-lg bg-[#141a26] border border-[#222b3e] hover:bg-[#1a2233] text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-all"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loadingAlerts ? 'animate-spin' : ''}`} /> REFRESH TRIAGE
+              <RefreshCw className={`w-3.5 h-3.5 ${loadingAlerts ? 'animate-spin' : ''}`} /> Refresh Triage
             </button>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mt-6">
+        <div className="flex flex-wrap gap-2 mt-5">
           {[
-            { id: 'triage', label: '⚡ ALERT TRIAGE QUEUE', icon: Activity },
-            { id: 'hunting', label: '🏹 THREAT HUNTING WORKBENCH', icon: Terminal },
-            { id: 'logs', label: '📜 SIEM LOG PARSER', icon: FileText },
-            { id: 'attack', label: '🌐 ATTACK SURFACE SCANNER', icon: Globe },
-            { id: 'soar', label: '🤖 SOAR PLAYBOOK ENGINE', icon: Zap },
+            { id: 'triage', label: 'Alert Triage Queue', icon: Activity },
+            { id: 'hunting', label: 'Threat Hunting Workbench', icon: Terminal },
+            { id: 'logs', label: 'SIEM Log Parser', icon: FileText },
+            { id: 'attack', label: 'Attack Surface Scanner', icon: Globe },
+            { id: 'soar', label: 'SOAR Playbook Engine', icon: Zap },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -168,13 +168,13 @@ export default function AnalystPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
                   isActive
-                    ? 'bg-cyan-500 text-black shadow-cyber-glow'
-                    : 'bg-slate-900/80 border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
+                    : 'bg-[#121721] border border-[#1e2638] text-slate-400 hover:text-slate-200 hover:bg-[#18202e]'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 shrink-0" />
                 {tab.label}
               </button>
             );

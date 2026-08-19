@@ -12,7 +12,38 @@
       "_id": "admin-karthiklava23"
     }
   },
-  "cases": {},
-  "evidence": {},
-  "logs": {}
+  "cases": {
+    "e7a8d523-c2dd-4370-acab-4c7cee0fd3c2": {
+      "title": "Persistence Test Case PERSIST_TEST_1786549897",
+      "description": "Testing live data persistence across server restarts and updates.",
+      "category": "Persistence Audit",
+      "created_by": "karthiklava23@gmail.com",
+      "created_at": "2026-08-12 21:00:00",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "id": "e7a8d523-c2dd-4370-acab-4c7cee0fd3c2",
+      "_id": "e7a8d523-c2dd-4370-acab-4c7cee0fd3c2"
+    }
+  },
+  "logs": {
+    "25431885-f4d5-4b73-97b7-678b95059c45": {
+      "user_email": "karthiklava23@gmail.com",
+      "action": "PERSISTENCE_TEST_EXECUTION",
+      "details": "Verified atomic persistence engine for marker PERSIST_TEST_1786549897",
+      "timestamp": "2026-08-12 21:00:01",
+      "id": "25431885-f4d5-4b73-97b7-678b95059c45",
+      "_id": "25431885-f4d5-4b73-97b7-678b95059c45"
+    }
+  },
+  "analyst_alerts": {
+    "ALT-PERSIST-1786549897": {
+      "id": "ALT-PERSIST-1786549897",
+      "title": "Test Persistence Alert PERSIST_TEST_1786549897",
+      "source": "EDR Persistence Test",
+      "severity": "CRITICAL",
+      "status": "TRIAGED",
+      "triaged_by": "karthiklava23@gmail.com",
+      "_id": "ALT-PERSIST-1786549897"
+    }
+  }
 }

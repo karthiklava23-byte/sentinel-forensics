@@ -44,37 +44,34 @@ app.include_router(gemini_router.router)
 app.include_router(analyst_router.router)
 
 @app.on_event("startup")
-def purge_demo_data_on_startup():
-    """Ensure system starts 100% clean with zero demo cases or sample alerts."""
+def ensure_system_persistence_on_startup():
+    """Ensure database persistence state is verified on startup without purging user or historical data."""
     try:
         from app.database import db
+        users = db.find_many("users")
         cases = db.find_many("cases")
-        for c in cases:
-            if c.get("created_by") in ["system", "demo", "sample"] or "Demo" in c.get("title", "") or "Sample" in c.get("title", ""):
-                db.delete_one("cases", {"id": c["id"]})
-        alerts = db.find_many("analyst_alerts")
-        for a in alerts:
-            if a.get("id", "").startswith("ALT-"):
-                db.delete_one("analyst_alerts", {"id": a["id"]})
-    except Exception:
-        pass
+        logs = db.find_many("logs")
+        print(f"[SENTINEL AI] Startup complete. Database live with {len(cases)} cases, {len(users)} users, {len(logs)} audit logs.")
+    except Exception as e:
+        print(f"[SENTINEL AI] Persistence startup check error: {e}")
+
 
 from fastapi.responses import FileResponse
 
 @app.get("/api/system/download-manual-pdf")
 def download_manual_pdf():
-    """Download the official SENTINEL AI System Directory & Role Capabilities Manual PDF."""
-    pdf_path = os.path.join(os.path.dirname(__file__), "SENTINEL_AI_System_Directory_and_Role_Capabilities.pdf")
+    """Download the official SENTINEL AI Master System Comprehensive Manual PDF (Combined 12-Page Edition)."""
+    pdf_path = os.path.join(os.path.dirname(__file__), "SENTINEL_AI_Master_System_Comprehensive_Manual.pdf")
     if not os.path.exists(pdf_path):
         try:
-            from generate_pdf_manual import build_manual_pdf
-            build_manual_pdf(pdf_path)
+            from combine_pdfs import merge_sentinel_manuals
+            pdf_path = merge_sentinel_manuals()
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to generate manual: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to generate master manual: {e}")
     return FileResponse(
         pdf_path,
         media_type="application/pdf",
-        filename="SENTINEL_AI_System_Directory_and_Role_Capabilities.pdf"
+        filename="SENTINEL_AI_Master_System_Comprehensive_Manual.pdf"
     )
 
 @app.get("/api/health")

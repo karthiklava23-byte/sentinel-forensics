@@ -4,11 +4,19 @@ import { authAPI } from '../services/api';
 const AuthContext = createContext();
 
 const TOKEN_KEY = 'sentinel_token';
+const USER_KEY = 'sentinel_user_data';
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const cached = localStorage.getItem(USER_KEY);
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(!user && !!token);
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -16,6 +24,7 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await authAPI.getMe();
           setUser(res.data);
+          localStorage.setItem(USER_KEY, JSON.stringify(res.data));
         } catch (err) {
           console.error("Session expired:", err);
           logout();
@@ -30,6 +39,7 @@ export const AuthProvider = ({ children }) => {
     const res = await authAPI.login(email, password);
     const { access_token, user: userData } = res.data;
     localStorage.setItem(TOKEN_KEY, access_token);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
     setToken(access_token);
     setUser(userData);
     return userData;
@@ -42,6 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setToken(null);
     setUser(null);
   };
