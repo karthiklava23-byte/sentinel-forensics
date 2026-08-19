@@ -126,29 +126,34 @@ export default function AnalystPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 font-sans max-w-7xl mx-auto">
-      {/* Workspace Header */}
-      <div className="border-b border-[#1e2638] pb-5">
+    <div className="p-6 space-y-6 font-sans">
+      {/* Workspace Header Banner */}
+      <div className="border-b border-slate-800/80 pb-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <Crosshair className="w-5 h-5 text-blue-400" />
-              <h1 className="text-xl font-bold text-slate-100 tracking-tight">SOC Analyst Operations Hub</h1>
-              <span className="px-2.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono font-semibold">
-                REAL-TIME TRIAGE & HUNTING
-              </span>
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
+              <Crosshair className="w-5 h-5" />
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Rapid Alert Processing &bull; YARA/Sigma Rule Crafting &bull; SIEM Log Parsing &bull; Attack Surface Auditing &bull; SOAR Containment Playbooks
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-slate-100 tracking-tight">Analyst SOC Workspace</h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
+                  Real-time Operations
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Alert Triage Queue • YARA/Sigma Detection Rules • SIEM Logs • Attack Surface Audit • SOAR Playbooks
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={fetchAlerts}
-              className="px-3 py-1.5 rounded-lg bg-[#141a26] border border-[#222b3e] hover:bg-[#1a2233] text-slate-200 text-xs font-medium flex items-center gap-1.5 transition-all"
+              className="px-3.5 py-2 rounded-xl bg-[#121724] border border-slate-800 hover:bg-[#182033] text-slate-300 text-xs font-medium flex items-center gap-2 transition-all"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loadingAlerts ? 'animate-spin' : ''}`} /> Refresh Triage
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${loadingAlerts ? 'animate-spin' : ''}`} />
+              <span>Refresh Triage</span>
             </button>
           </div>
         </div>
@@ -168,14 +173,14 @@ export default function AnalystPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm font-semibold'
-                    : 'bg-[#121721] border border-[#1e2638] text-slate-400 hover:text-slate-200 hover:bg-[#18202e]'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 font-semibold'
+                    : 'bg-[#111726] border border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-[#161e31]'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                {tab.label}
+                <span>{tab.label}</span>
               </button>
             );
           })}
@@ -184,77 +189,76 @@ export default function AnalystPage() {
 
       {/* Status Alert Banner */}
       {triageStatus && (
-        <div className="p-3 bg-emerald-950/60 border border-emerald-500 text-emerald-400 rounded-xl font-mono text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" /> {triageStatus}
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs flex items-center gap-2 font-medium">
+          <CheckCircle2 className="w-4 h-4" /> <span>{triageStatus}</span>
         </div>
       )}
 
       {/* TAB 1: ALERT TRIAGE QUEUE */}
       {activeTab === 'triage' && (
-        <div className="space-y-4 font-mono">
+        <div className="space-y-4 text-xs">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-cyan-400" />
-              ACTIVE SOC TRIAGE QUEUE ({alerts.length})
+            <h3 className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-rose-400" />
+              Active Triage Queue ({alerts.length})
             </h3>
-            <p className="text-[11px] text-slate-500">Fast 30-Second Triage: Dismiss False Positives or Escalate to Case</p>
+            <p className="text-[11px] text-slate-400">Dismiss False Positives or Escalate to Investigation Case</p>
           </div>
 
           <div className="grid grid-cols-1 gap-4">
             {loadingAlerts ? (
-              <div className="p-12 text-center text-slate-500 text-xs">LOADING TRIAGE QUEUE...</div>
+              <div className="p-12 text-center text-slate-400 text-xs font-medium">Loading triage alert queue...</div>
             ) : alerts.map((alt) => {
-              const sevColor = alt.severity === 'CRITICAL' ? 'border-rose-900/60 bg-rose-950/20 text-rose-400' : alt.severity === 'HIGH' ? 'border-orange-900/60 bg-orange-950/20 text-orange-400' : 'border-yellow-900/60 bg-yellow-950/20 text-yellow-400';
               const isDone = alt.status !== 'OPEN';
-
               return (
-                <div key={alt.id} className={`p-5 rounded-xl border bg-slate-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4 ${sevColor}`}>
-                  <div className="space-y-1.5 flex-1 min-w-0">
+                <div key={alt.id} className="soc-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-2 flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-slate-100 text-sm">{alt.id}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${sevColor}`}>
+                      <span className="font-bold text-slate-100 font-mono text-xs">{alt.id}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${
+                        alt.severity === 'CRITICAL' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      }`}>
                         {alt.severity}
                       </span>
-                      <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#182133] border border-slate-700 text-slate-300 text-[10px] font-medium">
                         {alt.category}
                       </span>
-                      <span className="text-[10px] text-slate-500">{alt.timestamp}</span>
+                      <span className="text-[11px] text-slate-400 font-mono">{alt.timestamp}</span>
                     </div>
 
-                    <h4 className="text-xs font-bold text-slate-200">{alt.title}</h4>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">{alt.details}</p>
+                    <h4 className="text-xs font-semibold text-slate-200">{alt.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">{alt.details}</p>
 
-                    <div className="flex items-center gap-4 text-[10px] text-slate-500 pt-1">
-                      <span>SOURCE IP: <strong className="text-cyan-400">{alt.source_ip}</strong></span>
-                      <span>TARGET ASSET: <strong className="text-slate-300">{alt.target_asset}</strong></span>
-                      <span>LOG: <strong>{alt.source}</strong></span>
+                    <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1 font-mono">
+                      <span>Source IP: <strong className="text-blue-400">{alt.source_ip}</strong></span>
+                      <span>Target Asset: <strong className="text-slate-200">{alt.target_asset}</strong></span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
                     {isDone ? (
-                      <span className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 text-xs font-bold uppercase">
+                      <span className="px-3 py-1.5 rounded-xl bg-[#182133] border border-slate-700 text-slate-300 text-xs font-medium capitalize">
                         {alt.status}
                       </span>
                     ) : (
                       <>
                         <button
                           onClick={() => handleTriageAction(alt.id, 'FALSE_POSITIVE')}
-                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold transition-all"
+                          className="px-3.5 py-2 rounded-xl bg-[#141b29] hover:bg-[#1a2336] text-slate-300 border border-slate-800 text-xs font-medium transition-all"
                         >
-                          FALSE POSITIVE
+                          False Positive
                         </button>
                         <button
                           onClick={() => handleTriageAction(alt.id, 'CONTAIN')}
-                          className="px-3 py-1.5 rounded-lg bg-orange-950 hover:bg-orange-900 text-orange-300 border border-orange-800 text-xs font-bold transition-all"
+                          className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs font-medium transition-all"
                         >
-                          CONTAIN IP
+                          Contain Host
                         </button>
                         <button
                           onClick={() => handleTriageAction(alt.id, 'ESCALATE')}
-                          className="px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold transition-all flex items-center gap-1"
+                          className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all flex items-center gap-1 shadow-lg shadow-blue-500/20"
                         >
-                          ESCALATE <ArrowUpRight className="w-3.5 h-3.5" />
+                          <span>Escalate</span> <ArrowUpRight className="w-3.5 h-3.5" />
                         </button>
                       </>
                     )}
@@ -268,21 +272,21 @@ export default function AnalystPage() {
 
       {/* TAB 2: THREAT HUNTING WORKBENCH */}
       {activeTab === 'hunting' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
           {/* Rule Editor */}
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
+          <div className="soc-card p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-cyan-400" />
-                DETECTION RULE BUILDER ({ruleType})
+              <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-blue-400" />
+                Detection Rule Builder ({ruleType})
               </h3>
-              <div className="flex gap-1">
+              <div className="flex gap-1.5">
                 {['YARA', 'SIGMA'].map(t => (
                   <button
                     key={t}
                     onClick={() => setRuleType(t)}
-                    className={`px-2.5 py-1 text-[10px] font-bold rounded border ${
-                      ruleType === t ? 'bg-cyan-500 text-black border-cyan-400' : 'bg-slate-900 text-slate-400 border-slate-800'
+                    className={`px-3 py-1 text-xs font-medium rounded-xl transition-all ${
+                      ruleType === t ? 'bg-blue-600 text-white font-semibold' : 'bg-[#0c1019] text-slate-400 border border-slate-800'
                     }`}
                   >
                     {t}
@@ -292,63 +296,63 @@ export default function AnalystPage() {
             </div>
 
             <div>
-              <label className="block text-[10px] text-slate-500 mb-1">RULE CODE</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Rule Code</label>
               <textarea
-                rows={12}
+                rows={10}
                 value={ruleContent}
                 onChange={(e) => setRuleContent(e.target.value)}
                 placeholder="Paste or write your YARA / Sigma detection rule here..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-cyan-300 font-mono focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
+                className="w-full bg-[#0c1019] border border-slate-800 rounded-xl p-3 text-xs text-blue-400 font-mono focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
               />
             </div>
 
             <div>
-              <label className="block text-[10px] text-slate-500 mb-1">TEST PAYLOAD / LOG SAMPLE</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Test Sample Text</label>
               <textarea
                 rows={4}
                 value={sampleText}
                 onChange={(e) => setSampleText(e.target.value)}
-                placeholder="Paste raw log sample or payload text to evaluate rule matching..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 font-mono focus:outline-none focus:border-cyan-500 resize-none"
+                placeholder="Paste raw log sample or payload text to test rule matching..."
+                className="w-full bg-[#0c1019] border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 resize-none"
               />
             </div>
 
             <button
               onClick={handleTestRule}
               disabled={loadingHunt}
-              className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-cyber-glow transition-all"
+              className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-40"
             >
-              <Play className="w-4 h-4" /> {loadingHunt ? 'TESTING RULE...' : `VALIDATE & TEST ${ruleType} RULE`}
+              <Play className="w-4 h-4" /> {loadingHunt ? 'Testing Rule...' : `Validate & Test ${ruleType} Rule`}
             </button>
           </div>
 
           {/* Test Evaluation Results */}
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
+          <div className="soc-card p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              RULE EVALUATION RESULTS
+              Rule Evaluation Results
             </h3>
 
             {!huntingResult ? (
-              <div className="text-center py-20 text-slate-600 text-xs">
-                Click "TEST RULE" to evaluate your {ruleType} detection rule against the test payload sample.
+              <div className="text-center py-20 text-slate-500 text-xs">
+                Click "Validate & Test" to evaluate your {ruleType} detection rule against the test payload.
               </div>
             ) : (
               <div className="space-y-4">
                 <div className={`p-4 rounded-xl border flex items-center justify-between ${
-                  huntingResult.status === 'MATCH_FOUND' ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-300' : 'bg-slate-900 border-slate-800 text-slate-400'
+                  huntingResult.status === 'MATCH_FOUND' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-[#0c1019] border-slate-800 text-slate-400'
                 }`}>
                   <div>
-                    <p className="text-xs font-bold">{huntingResult.status === 'MATCH_FOUND' ? '✅ SIGNATURE MATCH DETECTED' : '❌ NO MATCH FOUND'}</p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">{huntingResult.match_count} signature patterns matched in sample</p>
+                    <p className="text-xs font-bold">{huntingResult.status === 'MATCH_FOUND' ? '✅ Signature Match Detected' : '❌ No Match Found'}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{huntingResult.match_count} signature patterns matched in sample</p>
                   </div>
-                  <span className="text-[10px] px-2 py-1 bg-slate-950 rounded border border-slate-800 text-slate-400">{huntingResult.evaluated_at?.slice(11)}</span>
+                  <span className="text-[10px] font-mono px-2.5 py-1 bg-[#0c1019] rounded-full border border-slate-800 text-slate-400">{huntingResult.evaluated_at?.slice(11)}</span>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 uppercase">MATCH DETAILS</p>
+                  <p className="text-xs font-semibold text-slate-300">Match Details</p>
                   {huntingResult.matches.map((m, idx) => (
-                    <div key={idx} className="p-3 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200">
+                    <div key={idx} className="p-3 bg-[#0c1019] border border-slate-800 rounded-xl text-xs font-mono text-slate-200">
                       • {m}
                     </div>
                   ))}
@@ -361,20 +365,20 @@ export default function AnalystPage() {
 
       {/* TAB 3: SIEM LOG PARSER */}
       {activeTab === 'logs' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono">
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-cyan-400" />
-              SIEM LOG PARSER (.EVTX / SYSLOG / JSON)
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <div className="soc-card p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-blue-400" />
+              SIEM Log Parser (.EVTX / Syslog / JSON)
             </h3>
 
             <div>
-              <label className="block text-[10px] text-slate-500 mb-1">RAW LOG INPUT STREAM</label>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">Raw Log Input Stream</label>
               <textarea
-                rows={14}
+                rows={12}
                 value={logContent}
                 onChange={(e) => setLogContent(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500 resize-none leading-relaxed"
+                className="w-full bg-[#0c1019] border border-slate-800 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 resize-none leading-relaxed"
                 placeholder="Paste raw log lines here..."
               />
             </div>
@@ -382,48 +386,48 @@ export default function AnalystPage() {
             <button
               onClick={handleParseLogs}
               disabled={loadingParse}
-              className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-cyber-glow transition-all"
+              className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-40"
             >
-              <Layers className="w-4 h-4" /> {loadingParse ? 'PARSING LOGS...' : 'PARSE LOG ANOMALIES'}
+              <Layers className="w-4 h-4" /> {loadingParse ? 'Parsing Logs...' : 'Parse Log Anomalies'}
             </button>
           </div>
 
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-cyan-400" />
-              LOG ANOMALY PARSER OUTPUT
+          <div className="soc-card p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-blue-400" />
+              Log Anomaly Parser Output
             </h3>
 
             {!parsedLogResult ? (
-              <div className="text-center py-20 text-slate-600 text-xs">
-                Paste log text and click "PARSE LOG ANOMALIES" to extract failed logins, PowerShell execution, and top IP talkers.
+              <div className="text-center py-20 text-slate-500 text-xs">
+                Paste log text and click "Parse Log Anomalies" to extract failed logins, shell execution, and top IP talkers.
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
-                    <p className="text-lg font-bold text-slate-100">{parsedLogResult.total_log_lines_parsed}</p>
-                    <p className="text-[10px] text-slate-500">LINES PARSED</p>
+                  <div className="p-3 bg-[#0c1019] border border-slate-800 rounded-xl text-center">
+                    <p className="text-lg font-bold text-slate-100 font-mono">{parsedLogResult.total_log_lines_parsed}</p>
+                    <p className="text-[10px] text-slate-400 uppercase font-medium">Lines Parsed</p>
                   </div>
-                  <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
-                    <p className="text-lg font-bold text-rose-400">{parsedLogResult.failed_login_events}</p>
-                    <p className="text-[10px] text-slate-500">FAILED LOGINS</p>
+                  <div className="p-3 bg-[#0c1019] border border-slate-800 rounded-xl text-center">
+                    <p className="text-lg font-bold text-rose-400 font-mono">{parsedLogResult.failed_login_events}</p>
+                    <p className="text-[10px] text-slate-400 uppercase font-medium">Failed Logins</p>
                   </div>
-                  <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg text-center">
-                    <p className="text-lg font-bold text-purple-400">{parsedLogResult.suspicious_executions}</p>
-                    <p className="text-[10px] text-slate-500">SHELL EXEC</p>
+                  <div className="p-3 bg-[#0c1019] border border-slate-800 rounded-xl text-center">
+                    <p className="text-lg font-bold text-purple-400 font-mono">{parsedLogResult.suspicious_executions}</p>
+                    <p className="text-[10px] text-slate-400 uppercase font-medium">Shell Exec</p>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 uppercase">DETECTED ANOMALIES</p>
+                  <p className="text-xs font-semibold text-slate-300">Detected Anomalies</p>
                   {parsedLogResult.detected_anomalies.map((anom, idx) => (
-                    <div key={idx} className="p-3 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+                    <div key={idx} className="p-3 bg-[#0c1019] border border-slate-800 rounded-xl flex items-center justify-between text-xs">
                       <div>
-                        <p className="font-bold text-cyan-400">{anom.type}</p>
+                        <p className="font-semibold text-blue-400">{anom.type}</p>
                         <p className="text-slate-400 text-[11px] mt-0.5">{anom.description}</p>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-400 text-[10px] font-bold border border-rose-800">
+                      <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 text-[10px] font-medium border border-rose-500/20">
                         {anom.severity}
                       </span>
                     </div>
@@ -431,12 +435,12 @@ export default function AnalystPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 uppercase">TOP IP TALKERS</p>
-                  <div className="space-y-1">
+                  <p className="text-xs font-semibold text-slate-300">Top IP Talkers</p>
+                  <div className="space-y-1.5 font-mono text-[11px]">
                     {parsedLogResult.top_ip_talkers.map((talker, idx) => (
-                      <div key={idx} className="flex justify-between p-2 bg-slate-900 rounded border border-slate-800 text-xs">
-                        <span className="text-cyan-400 font-bold">{talker.ip}</span>
-                        <span className="text-slate-400">{talker.count} requests</span>
+                      <div key={idx} className="flex justify-between p-2.5 bg-[#0c1019] rounded-xl border border-slate-800">
+                        <span className="text-blue-400 font-semibold">{talker.ip}</span>
+                        <span className="text-slate-400 font-sans">{talker.count} requests</span>
                       </div>
                     ))}
                   </div>
@@ -449,11 +453,11 @@ export default function AnalystPage() {
 
       {/* TAB 4: ATTACK SURFACE SCANNER */}
       {activeTab === 'attack' && (
-        <div className="space-y-6 font-mono">
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-cyan-400" />
-              EXTERNAL ATTACK SURFACE &amp; CVE VULNERABILITY AUDITOR
+        <div className="space-y-6 text-xs">
+          <div className="soc-card p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-blue-400" />
+              External Attack Surface & CVE Vulnerability Auditor
             </h3>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -462,62 +466,62 @@ export default function AnalystPage() {
                 value={targetAsset}
                 onChange={(e) => setTargetAsset(e.target.value)}
                 placeholder="Enter target IP or Domain (e.g. 192.168.1.1 or company.com)..."
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                className="flex-1 bg-[#0c1019] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 transition-all"
               />
               <button
                 onClick={handleScanAttackSurface}
                 disabled={loadingScan}
-                className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-cyber-glow transition-all"
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-40"
               >
-                <Globe className="w-4 h-4" /> {loadingScan ? 'AUDITING...' : 'AUDIT ATTACK SURFACE'}
+                <Globe className="w-4 h-4" /> {loadingScan ? 'Auditing...' : 'Audit Attack Surface'}
               </button>
             </div>
           </div>
 
           {scanResult && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="cyber-card p-5 rounded-xl border border-slate-800 text-center flex flex-col justify-center items-center">
-                <p className="text-[10px] text-slate-500 uppercase">SECURITY HEALTH GRADE</p>
-                <h2 className={`text-6xl font-bold my-2 ${
-                  scanResult.health_grade === 'A' ? 'text-emerald-400' : scanResult.health_grade === 'B' ? 'text-cyan-400' : scanResult.health_grade === 'C' ? 'text-yellow-400' : 'text-rose-400'
+              <div className="soc-card p-5 text-center flex flex-col justify-center items-center">
+                <p className="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Security Health Grade</p>
+                <h2 className={`text-6xl font-bold font-mono my-2 ${
+                  scanResult.health_grade === 'A' ? 'text-emerald-400' : scanResult.health_grade === 'B' ? 'text-blue-400' : scanResult.health_grade === 'C' ? 'text-amber-400' : 'text-rose-400'
                 }`}>
                   {scanResult.health_grade}
                 </h2>
                 <p className="text-xs text-slate-400">Risk Score: {scanResult.overall_risk_score}/100</p>
-                <p className="text-[10px] text-cyan-400 mt-2">IP: {scanResult.resolved_ip}</p>
+                <p className="text-xs font-mono text-blue-400 mt-2">IP: {scanResult.resolved_ip}</p>
               </div>
 
-              <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-3">
-                <h4 className="text-xs font-bold text-slate-200">OPEN PORTS &amp; SERVICES</h4>
+              <div className="soc-card p-5 space-y-3">
+                <h4 className="text-xs font-semibold text-slate-200">Open Ports & Services</h4>
                 <div className="space-y-2">
                   {scanResult.open_ports.map((p, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-950 rounded border border-slate-800 text-xs">
+                    <div key={idx} className="flex items-center justify-between p-2.5 bg-[#0c1019] rounded-xl border border-slate-800 text-xs">
                       <div>
-                        <span className="text-cyan-400 font-bold">PORT {p.port}</span>
-                        <span className="text-slate-300 ml-2">{p.service}</span>
+                        <span className="text-blue-400 font-mono font-semibold">Port {p.port}</span>
+                        <span className="text-slate-300 ml-2 font-medium">{p.service}</span>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        p.risk === 'HIGH' ? 'bg-rose-950 text-rose-400' : p.risk === 'MEDIUM' ? 'bg-orange-950 text-orange-400' : 'bg-slate-800 text-slate-400'
+                      <span className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full ${
+                        p.risk === 'HIGH' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                       }`}>
-                        {p.risk} RISK
+                        {p.risk} Risk
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-3">
-                <h4 className="text-xs font-bold text-slate-200">CVE VULNERABILITY MATCHES</h4>
+              <div className="soc-card p-5 space-y-3">
+                <h4 className="text-xs font-semibold text-slate-200">CVE Vulnerability Matches</h4>
                 <div className="space-y-2">
                   {scanResult.matching_cves.length === 0 ? (
-                    <p className="text-slate-600 text-xs">No critical CVEs matched for open services.</p>
+                    <p className="text-slate-500 text-xs">No critical CVEs matched for open services.</p>
                   ) : scanResult.matching_cves.map((cve, idx) => (
-                    <div key={idx} className="p-3 bg-slate-950 border border-slate-800 rounded-lg text-xs space-y-1">
+                    <div key={idx} className="p-3 bg-[#0c1019] border border-slate-800 rounded-xl text-xs space-y-1">
                       <div className="flex justify-between font-bold">
-                        <span className="text-rose-400">{cve.cve_id}</span>
-                        <span className="text-rose-400">CVSS {cve.cvss_score}</span>
+                        <span className="text-rose-400 font-mono">{cve.cve_id}</span>
+                        <span className="text-rose-400 font-mono">CVSS {cve.cvss_score}</span>
                       </div>
-                      <p className="text-slate-200 text-[11px]">{cve.name}</p>
+                      <p className="text-slate-300 text-[11px]">{cve.name}</p>
                     </div>
                   ))}
                 </div>
@@ -529,81 +533,81 @@ export default function AnalystPage() {
 
       {/* TAB 5: SOAR PLAYBOOK ENGINE */}
       {activeTab === 'soar' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 font-mono">
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-              <Zap className="w-4 h-4 text-cyan-400" />
-              SOAR CONTAINMENT PLAYBOOK GENERATOR
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
+          <div className="soc-card p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-blue-400" />
+              SOAR Containment Playbook Generator
             </h3>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1">PLAYBOOK ACTION TYPE</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">Playbook Action Type</label>
                 <select
                   value={playbookType}
                   onChange={(e) => setPlaybookType(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-[#0c1019] border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 transition-all font-medium"
                 >
-                  <option value="BLOCK_IP">BLOCK MALICIOUS IP (iptables / Windows Firewall)</option>
-                  <option value="BLOCK_DOMAIN">DNS SINKHOLE DOMAIN (BIND / Hosts File)</option>
-                  <option value="ISOLATE_ENDPOINT">NETWORK ISOLATE ENDPOINT HOST</option>
-                  <option value="REVOKE_USER">REVOKE COMPROMISED USER SESSIONS</option>
+                  <option value="BLOCK_IP">Block Malicious IP (iptables / Windows Firewall)</option>
+                  <option value="BLOCK_DOMAIN">DNS Sinkhole Domain (BIND / Hosts File)</option>
+                  <option value="ISOLATE_ENDPOINT">Network Isolate Endpoint Host</option>
+                  <option value="REVOKE_USER">Revoke Compromised User Sessions</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-500 mb-1">TARGET IP / DOMAIN / USERNAME</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">Target IP / Domain / Username</label>
                 <input
                   type="text"
                   value={playbookTarget}
                   onChange={(e) => setPlaybookTarget(e.target.value)}
                   placeholder="Enter IP, domain, username, or endpoint hostname..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-[#0c1019] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-blue-500 transition-all"
                 />
               </div>
 
               <button
                 onClick={handleGeneratePlaybook}
                 disabled={loadingPlaybook}
-                className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-black font-bold rounded-lg text-xs flex items-center justify-center gap-2 shadow-cyber-glow transition-all"
+                className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition-all disabled:opacity-40"
               >
-                <Zap className="w-4 h-4" /> {loadingPlaybook ? 'GENERATING PAYLOAD...' : 'GENERATE CONTAINMENT PAYLOAD'}
+                <Zap className="w-4 h-4" /> {loadingPlaybook ? 'Generating Payload...' : 'Generate Containment Payload'}
               </button>
             </div>
           </div>
 
-          <div className="cyber-card p-5 rounded-xl border border-slate-800 space-y-4">
-            <h3 className="text-xs font-bold text-slate-200 flex items-center gap-2">
-              <Terminal className="w-4 h-4 text-cyan-400" />
-              CONTAINMENT SCRIPT PAYLOAD
+          <div className="soc-card p-5 space-y-4">
+            <h3 className="text-xs font-semibold text-slate-200 flex items-center gap-2">
+              <Terminal className="w-4 h-4 text-blue-400" />
+              Containment Script Payload
             </h3>
 
             {!playbookResult ? (
-              <div className="text-center py-20 text-slate-600 text-xs">
-                Select a playbook action and click "GENERATE CONTAINMENT PAYLOAD" to get Linux &amp; Windows block scripts.
+              <div className="text-center py-20 text-slate-500 text-xs">
+                Select a playbook action and click "Generate Containment Payload" to get Linux & Windows block scripts.
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-cyan-400">{playbookResult.title}</h4>
+                  <h4 className="text-xs font-semibold text-blue-400">{playbookResult.title}</h4>
                   <button
                     onClick={() => copyToClipboard(playbookResult.bash_payload + "\n\n" + playbookResult.powershell_payload)}
-                    className="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 rounded text-[11px] flex items-center gap-1"
+                    className="px-3 py-1.5 bg-[#121724] hover:bg-[#182033] text-slate-300 border border-slate-800 rounded-xl text-xs flex items-center gap-1.5 transition-all"
                   >
-                    <Copy className="w-3 h-3" /> {copiedPayload ? 'COPIED!' : 'COPY PAYLOAD'}
+                    <Copy className="w-3.5 h-3.5 text-blue-400" /> {copiedPayload ? 'Copied Payload!' : 'Copy Payload'}
                   </button>
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-slate-500 mb-1">LINUX / BASH PAYLOAD</p>
-                  <pre className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs text-emerald-400 font-mono overflow-x-auto">
+                  <p className="text-[11px] text-slate-400 font-medium mb-1">Linux / Bash Payload</p>
+                  <pre className="bg-[#0c1019] p-3 rounded-xl border border-slate-800 text-xs text-emerald-400 font-mono overflow-x-auto">
                     {playbookResult.bash_payload}
                   </pre>
                 </div>
 
                 <div>
-                  <p className="text-[10px] text-slate-500 mb-1">WINDOWS POWERSHELL PAYLOAD</p>
-                  <pre className="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs text-blue-400 font-mono overflow-x-auto">
+                  <p className="text-[11px] text-slate-400 font-medium mb-1">Windows PowerShell Payload</p>
+                  <pre className="bg-[#0c1019] p-3 rounded-xl border border-slate-800 text-xs text-blue-400 font-mono overflow-x-auto">
                     {playbookResult.powershell_payload}
                   </pre>
                 </div>

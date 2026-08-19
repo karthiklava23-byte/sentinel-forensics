@@ -35,7 +35,7 @@ const Sidebar = () => {
       title: 'Incident Management',
       items: [
         ...(role === 'analyst' || role === 'admin'
-          ? [{ name: 'Analyst Workspace', path: '/analyst', icon: Crosshair }]
+          ? [{ name: 'Analyst Operations', path: '/analyst', icon: Crosshair }]
           : []),
         ...(role === 'investigator' || role === 'admin'
           ? [{ name: 'Cases & Incidents', path: '/cases', icon: FolderGit2 }]
@@ -59,27 +59,27 @@ const Sidebar = () => {
       title: 'Administration',
       items: [
         { name: 'Admin Control Panel', path: '/admin',       icon: Settings },
-        { name: 'User Management',     path: '/admin/users', icon: Users }
+        { name: 'User Directory',      path: '/admin/users', icon: Users }
       ]
     });
   }
 
   return (
     <>
-      <aside className="w-64 bg-[#0c1019] border-r border-slate-800/80 shrink-0 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between font-sans">
+      <aside className="w-64 bg-white border-r border-slate-200 shrink-0 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between font-sans">
         <div className="space-y-6">
-          {/* Quick Action CTA */}
+          {/* Quick Action CTA Button */}
           <button
             onClick={() => setIsCaseModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs shadow-md transition-all hover:scale-[1.01] active:scale-[0.99]"
           >
-            <Plus className="w-4 h-4" />
-            <span>New Case / Incident</span>
+            <Plus className="w-4 h-4 text-emerald-400" />
+            <span>New Incident Case</span>
           </button>
 
           {groups.map((group, gIdx) => (
             <div key={gIdx} className="space-y-2">
-              <p className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              <p className="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider font-sans">
                 {group.title}
               </p>
               <nav className="space-y-1">
@@ -90,14 +90,14 @@ const Sidebar = () => {
                       key={item.path}
                       to={item.path}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                        `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                           isActive
-                            ? 'bg-blue-600/10 text-blue-400 border-l-2 border-blue-500 font-semibold pl-2.5 shadow-sm'
-                            : 'text-slate-400 hover:text-slate-200 hover:bg-[#141b29]'
+                            ? 'bg-[#0F172A] text-white font-bold shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         }`
                       }
                     >
-                      <Icon className="w-4 h-4 shrink-0 text-slate-400 group-hover:text-blue-400" />
+                      <Icon className="w-4 h-4 shrink-0 text-slate-500" />
                       <span>{item.name}</span>
                     </NavLink>
                   );
@@ -107,28 +107,28 @@ const Sidebar = () => {
           ))}
 
           {/* Engine Health Card */}
-          <div className="p-3.5 rounded-xl bg-[#121724] border border-slate-800 text-xs">
-            <div className="flex items-center gap-2 text-blue-400 mb-1.5 font-semibold">
-              <Cpu className="w-4 h-4 text-blue-400" />
+          <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-slate-200 text-xs space-y-1.5">
+            <div className="flex items-center gap-2 text-[#064E3B] font-bold">
+              <Cpu className="w-4 h-4 text-[#064E3B]" />
               <span>Forensic Engine Active</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
-              AI correlation and SQLite database active.
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Legal chain of custody and correlation online.
             </p>
-            <div className="w-full bg-[#1b2334] h-1.5 rounded-full overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-full"></div>
+            <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+              <div className="bg-[#064E3B] h-full w-full"></div>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-400 mt-2">
+            <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1">
               <span>Database: WAL Mode</span>
-              <span className="text-emerald-400 font-medium">Ready</span>
+              <span className="text-[#064E3B] font-bold">Ready</span>
             </div>
           </div>
         </div>
 
         {/* Footer info */}
-        <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-          <span className="font-medium text-slate-400">{BRAND_CONFIG.shortName} SOC</span>
-          <span className="px-2 py-0.5 rounded-full bg-[#141b29] border border-slate-800 text-slate-300 text-[10px] capitalize font-medium">
+        <div className="pt-3 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between">
+          <span className="font-semibold text-slate-700">{BRAND_CONFIG.shortName} SOC</span>
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-[10px] capitalize font-bold">
             {role}
           </span>
         </div>

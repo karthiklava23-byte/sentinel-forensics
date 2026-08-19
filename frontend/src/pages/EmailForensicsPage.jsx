@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Upload, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle } from 'lucide-react';
+import { Mail, Upload, ShieldCheck, AlertTriangle, FileText, CheckCircle2, XCircle, ChevronRight, Activity } from 'lucide-react';
 import { evidenceAPI } from '../services/api';
 import ThreatBadge from '../components/ThreatBadge';
 
@@ -33,119 +33,147 @@ const EmailForensicsPage = () => {
 
   return (
     <div className="p-6 space-y-6 font-sans">
-      {/* Header */}
-      <div className="border-b border-slate-800 pb-5 font-mono">
-        <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-3">
-          <Mail className="w-6 h-6 text-cyan-400" />
-          EMAIL FORENSICS & HEADER INSPECTOR
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Deep-dive .EML header parsing, SPF/DKIM validation, hop tracing, attachment payload auditing & phishing risk calculation.
-        </p>
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
+            <Mail className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
+              Email Forensics & Header Analysis
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">EML Engine</span>
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Analyze email headers, SPF/DKIM validation, hop tracing, attachments, and phishing probability scores
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Upload Workbench Form */}
-      <div className="cyber-card p-6 rounded-xl border border-slate-800 font-mono text-xs space-y-4">
+      <div className="soc-card p-6 space-y-4">
         <form onSubmit={handleAnalyze} className="space-y-4">
           {error && (
-            <div className="p-3 bg-rose-950/60 border border-rose-500/40 text-rose-300 rounded">
-              {error}
+            <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs flex items-center gap-2 font-medium">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
 
           <div className="flex flex-col gap-4">
-            <div className="w-full">
-              <label className="block text-slate-400 mb-2">UPLOAD .EML FILE</label>
-              <input
-                type="file"
-                accept=".eml,.msg"
-                onChange={(e) => setFile(e.target.files[0])}
-                className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-3 text-slate-300 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-cyan-950 file:text-cyan-400 cursor-pointer"
-              />
-              {file && <p className="text-[11px] text-emerald-400 mt-1.5">✓ Selected: {file.name} ({(file.size / 1024).toFixed(1)} KB)</p>}
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-2">Upload Email Message (.EML / .MSG)</label>
+              <div className="border-2 border-dashed border-slate-800 hover:border-blue-500/40 rounded-2xl p-6 bg-[#0c1019] text-center transition-all cursor-pointer relative">
+                <input
+                  type="file"
+                  accept=".eml,.msg"
+                  onChange={(e) => setFile(e.target.files[0])}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                    <Upload className="w-5 h-5" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-200">
+                    {file ? file.name : 'Click to select or drag & drop an .EML file here'}
+                  </p>
+                  <p className="text-[11px] text-slate-500">
+                    {file ? `File size: ${(file.size / 1024).toFixed(1)} KB` : 'Supports standard .EML and .MSG RFC-822 header formats'}
+                  </p>
+                </div>
+              </div>
             </div>
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full sm:w-auto px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded shadow-cyber-glow transition-all text-sm"
+              disabled={loading || !file}
+              className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/20 transition-all text-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? 'PARSING EML...' : 'PARSE & ANALYZE EMAIL'}
+              {loading ? (
+                <>
+                  <Activity className="w-4 h-4 animate-spin" />
+                  <span>Analyzing Email Headers...</span>
+                </>
+              ) : (
+                <span>Parse & Analyze EML</span>
+              )}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Results Workbench */}
+      {/* Analysis Results Workbench */}
       {result && (
-        <div className="cyber-card-glow p-6 rounded-xl font-mono text-xs space-y-6">
+        <div className="soc-card p-6 space-y-6">
           {/* Header Summary */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
             <div>
-              <span className="text-[10px] text-slate-500 uppercase">PARSED ARTIFACT: {result.filename}</span>
+              <span className="text-[11px] text-slate-400 font-mono">File Artifact: {result.filename}</span>
               <h2 className="text-base font-bold text-slate-100 mt-1">{result.subject}</h2>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="text-right">
-                <span className="text-[10px] text-slate-400">PHISHING SCORE</span>
-                <p className="text-xl font-bold text-rose-400">{result.phishing_score}/100</p>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold">Phishing Score</span>
+                <p className="text-xl font-bold text-rose-400 font-mono">{result.phishing_score}/100</p>
               </div>
               <ThreatBadge level={result.threat_level} />
             </div>
           </div>
 
           {/* Email Header Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/60 p-4 rounded-lg border border-slate-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0c1019] p-4 rounded-xl border border-slate-800 text-xs">
             <div>
-              <span className="text-slate-500 text-[10px]">SENDER (FROM):</span>
-              <p className="text-cyan-400 font-bold">{result.sender}</p>
+              <span className="text-slate-400 text-[11px]">Sender (From):</span>
+              <p className="text-blue-400 font-semibold font-mono mt-0.5">{result.sender}</p>
             </div>
             <div>
-              <span className="text-slate-500 text-[10px]">RECIPIENT (TO):</span>
-              <p className="text-slate-200">{result.recipient}</p>
+              <span className="text-slate-400 text-[11px]">Recipient (To):</span>
+              <p className="text-slate-200 font-mono mt-0.5">{result.recipient}</p>
             </div>
             <div>
-              <span className="text-slate-500 text-[10px]">RETURN-PATH HEADER:</span>
-              <p className="text-rose-300 font-semibold">{result.return_path}</p>
+              <span className="text-slate-400 text-[11px]">Return-Path Header:</span>
+              <p className="text-rose-300 font-semibold font-mono mt-0.5">{result.return_path}</p>
             </div>
             <div>
-              <span className="text-slate-500 text-[10px]">TIMESTAMP:</span>
-              <p className="text-slate-300">{result.date}</p>
+              <span className="text-slate-400 text-[11px]">Timestamp:</span>
+              <p className="text-slate-300 mt-0.5">{result.date}</p>
             </div>
           </div>
 
           {/* Authentication Protocols (SPF / DKIM / DMARC) */}
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-slate-200 uppercase flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-cyan-400" />
-              EMAIL AUTHENTICATION CHECKS
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-blue-400" />
+              Email Authentication Verification
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className={`p-4 rounded-lg border flex items-center justify-between ${
-                result.spf_status === 'PASS' ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400' : 'bg-rose-950/40 border-rose-500/40 text-rose-400'
+              <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
+                result.spf_status === 'PASS' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
               }`}>
                 <div>
-                  <p className="text-[10px] uppercase text-slate-400">SPF PROTOCOL</p>
-                  <p className="text-sm font-bold">{result.spf_status}</p>
+                  <p className="text-[10px] uppercase font-medium text-slate-400">SPF Protocol</p>
+                  <p className="text-sm font-bold font-mono mt-0.5">{result.spf_status}</p>
                 </div>
                 {result.spf_status === 'PASS' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
               </div>
 
-              <div className={`p-4 rounded-lg border flex items-center justify-between ${
-                result.dkim_status === 'PASS' ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400' : 'bg-rose-950/40 border-rose-500/40 text-rose-400'
+              <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
+                result.dkim_status === 'PASS' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
               }`}>
                 <div>
-                  <p className="text-[10px] uppercase text-slate-400">DKIM SIGNATURE</p>
-                  <p className="text-sm font-bold">{result.dkim_status}</p>
+                  <p className="text-[10px] uppercase font-medium text-slate-400">DKIM Signature</p>
+                  <p className="text-sm font-bold font-mono mt-0.5">{result.dkim_status}</p>
                 </div>
                 {result.dkim_status === 'PASS' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
               </div>
 
-              <div className={`p-4 rounded-lg border flex items-center justify-between ${
-                result.dmarc_status === 'PASS' ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-400' : 'bg-rose-950/40 border-rose-500/40 text-rose-400'
+              <div className={`p-3.5 rounded-xl border flex items-center justify-between ${
+                result.dmarc_status === 'PASS' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
               }`}>
                 <div>
-                  <p className="text-[10px] uppercase text-slate-400">DMARC POLICY</p>
-                  <p className="text-sm font-bold">{result.dmarc_status}</p>
+                  <p className="text-[10px] uppercase font-medium text-slate-400">DMARC Policy</p>
+                  <p className="text-sm font-bold font-mono mt-0.5">{result.dmarc_status}</p>
                 </div>
                 {result.dmarc_status === 'PASS' ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
               </div>
@@ -153,57 +181,57 @@ const EmailForensicsPage = () => {
           </div>
 
           {/* Hop IP Trace & Suspicious Keywords */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
             {/* Hop IPs */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-200 uppercase">RECEIVED HEADER IP HOPS</h4>
-              <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg space-y-1">
+              <h4 className="text-xs font-semibold text-slate-300">Received Header IP Hops</h4>
+              <div className="p-3.5 bg-[#0c1019] border border-slate-800 rounded-xl space-y-1 font-mono text-[11px]">
                 {result.hop_ips.length > 0 ? (
                   result.hop_ips.map((ip, idx) => (
                     <div key={idx} className="flex items-center justify-between py-1 border-b border-slate-800/60 last:border-0">
-                      <span className="text-slate-400">Hop #{idx + 1}:</span>
-                      <span className="text-cyan-400 font-bold">{ip}</span>
+                      <span className="text-slate-400 font-sans">Hop #{idx + 1}:</span>
+                      <span className="text-blue-400 font-semibold">{ip}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-slate-500">No external IP hops extracted</p>
+                  <p className="text-slate-500 font-sans text-xs">No external IP hops extracted</p>
                 )}
               </div>
             </div>
 
             {/* Suspicious Keywords */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-200 uppercase">SUSPICIOUS KEYWORDS DETECTED</h4>
-              <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg flex flex-wrap gap-2">
+              <h4 className="text-xs font-semibold text-slate-300">Flagged Phishing Keywords</h4>
+              <div className="p-3.5 bg-[#0c1019] border border-slate-800 rounded-xl flex flex-wrap gap-2 text-xs">
                 {result.suspicious_keywords.length > 0 ? (
                   result.suspicious_keywords.map((kw, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-amber-950/80 border border-amber-500/40 text-amber-300 rounded text-[11px]">
+                    <span key={idx} className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full font-medium text-[11px]">
                       ⚠️ {kw}
                     </span>
                   ))
                 ) : (
-                  <p className="text-slate-500">No high-risk suspicious keywords flagged</p>
+                  <p className="text-slate-500 text-xs">No high-risk suspicious keywords flagged</p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Attachment Inspection */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-200 uppercase">EMBEDDED ATTACHMENTS ({(result.attachments || []).length})</h4>
+          <div className="space-y-2 text-xs">
+            <h4 className="text-xs font-semibold text-slate-300">Embedded Attachments ({(result.attachments || []).length})</h4>
             <div className="space-y-2">
               {(result.attachments || []).map((att, idx) => (
-                <div key={idx} className="p-3 bg-slate-900/80 border border-slate-800 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-2">
+                <div key={idx} className="p-3.5 bg-[#0c1019] border border-slate-800 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-200 font-bold">{att.filename}</span>
+                      <span className="text-slate-200 font-semibold font-mono text-xs">{att.filename}</span>
                       {att.is_suspicious && (
-                        <span className="px-2 py-0.5 bg-rose-950 text-rose-400 border border-rose-500/50 rounded text-[10px]">
-                          MALICIOUS PAYLOAD
+                        <span className="px-2.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-full text-[10px] font-medium">
+                          Malicious Payload
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">SHA256: {att.sha256}</p>
+                    <p className="text-[11px] font-mono text-slate-500 mt-0.5">SHA256: {att.sha256}</p>
                   </div>
                   <div className="text-slate-400 text-[11px]">
                     Size: {(att.size_bytes / 1024).toFixed(1)} KB | {att.content_type}

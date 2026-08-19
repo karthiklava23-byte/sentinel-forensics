@@ -4,11 +4,13 @@
 
 @layer base {
   :root {
-    --bg-app: #090d16;
-    --bg-surface: #111726;
-    --bg-surface-hover: #172033;
-    --border-subtle: rgba(255, 255, 255, 0.08);
-    --border-highlight: rgba(59, 130, 246, 0.3);
+    --navy-primary: #0F172A;
+    --navy-surface: #1E293B;
+    --off-white: #F8FAFC;
+    --cream-surface: #FFFFFF;
+    --burgundy-accent: #7F1D1D;
+    --emerald-accent: #064E3B;
+    --border-corporate: #E2E8F0;
   }
 
   * {
@@ -16,8 +18,12 @@
   }
 
   body {
-    @apply bg-[#090d16] text-slate-100 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-blue-600 selection:text-white;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    @apply bg-[#F8FAFC] text-slate-900 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-slate-900 selection:text-white;
+    font-family: 'Plus Jakarta Sans', 'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, .font-serif-heading {
+    font-family: 'Playfair Display', 'Merriweather', Georgia, serif;
   }
 
   /* Prevent text selection on navigation & UI controls */
@@ -36,67 +42,70 @@
     user-select: text;
   }
 
-  /* Sleek human-crafted modern scrollbars */
+  /* Executive scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0b0f19;
+    background: #F1F5F9;
   }
   ::-webkit-scrollbar-thumb {
-    background: #1e293b;
+    background: #94A3B8;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3b82f6;
+    background: #0F172A;
   }
 }
 
-/* Enterprise Human-Crafted Dark Theme Cards */
-.soc-card, .cyber-card, .cyber-card-glow {
-  background: #111726;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Corporate Executive Card Containers (Light Mode Authority Layout) */
+.soc-card, .cyber-card, .corporate-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 0.875rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .soc-card-interactive {
-  background: #111726;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 0.875rem;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .soc-card-interactive:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  background: #161e31;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(59, 130, 246, 0.08);
+  border-color: #0F172A;
+  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
   transform: translateY(-1px);
 }
 
-/* Human-designed Status Pills */
+/* Tool Dashboard Navy Containers (For Technical Tool Workbenches) */
+.navy-card {
+  background: #0F172A;
+  border: 1px solid #1E293B;
+  color: #F8FAFC;
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+/* Executive Status Badges */
 .status-pill-emerald {
-  @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2.5 py-0.5 rounded-full font-sans text-xs font-medium tracking-wide inline-flex items-center gap-1.5;
+  @apply bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
+}
+.status-pill-rose, .status-pill-burgundy {
+  @apply bg-[#7F1D1D]/10 text-[#7F1D1D] border border-[#7F1D1D]/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
 }
 .status-pill-amber {
-  @apply bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2.5 py-0.5 rounded-full font-sans text-xs font-medium tracking-wide inline-flex items-center gap-1.5;
+  @apply bg-amber-500/10 text-amber-800 border border-amber-500/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
 }
-.status-pill-rose {
-  @apply bg-rose-500/10 text-rose-400 border border-rose-500/25 px-2.5 py-0.5 rounded-full font-sans text-xs font-medium tracking-wide inline-flex items-center gap-1.5;
-}
-.status-pill-blue {
-  @apply bg-blue-500/10 text-blue-400 border border-blue-500/25 px-2.5 py-0.5 rounded-full font-sans text-xs font-medium tracking-wide inline-flex items-center gap-1.5;
-}
-.status-pill-purple {
-  @apply bg-purple-500/10 text-purple-400 border border-purple-500/25 px-2.5 py-0.5 rounded-full font-sans text-xs font-medium tracking-wide inline-flex items-center gap-1.5;
+.status-pill-blue, .status-pill-navy {
+  @apply bg-[#0F172A]/10 text-[#0F172A] border border-[#0F172A]/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
 }
 
-/* Custom Input Focus Rings */
+/* Input Focus Styles */
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+  border-color: #0F172A !important;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.15) !important;
 }
-
-
