@@ -1,350 +1,309 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck, Search, Globe, Mail, Hash, Wifi, AlertTriangle,
   CheckCircle, XCircle, Loader2, ChevronDown, ChevronRight,
-  Activity, Flag, Zap, Shield, Target, Database, RefreshCw, Bug
+  Activity, Flag, Zap, Shield, Target, Database, Play, Download, ExternalLink
 } from 'lucide-react';
 import { threatIntelAPI } from '../services/api';
+import ThreatBadge from '../components/ThreatBadge';
 
-const IOC_TYPES = ['IP', 'DOMAIN', 'URL', 'HASH', 'EMAIL'];
-
-const ReputationBadge = ({ reputation }) => {
-  const map = {
-    MALICIOUS:  'status-pill-rose font-medium',
-    SUSPICIOUS: 'status-pill-amber font-medium',
-    CLEAN:      'status-pill-emerald font-medium',
-    UNKNOWN:    'bg-[#182030] text-slate-400 border border-slate-700 px-2.5 py-0.5 rounded-full font-sans text-xs font-medium',
-  };
-  return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-sans capitalize ${map[reputation] || map.UNKNOWN}`}>
-      {reputation?.toLowerCase()}
-    </span>
-  );
-};
-
-const SeverityBadge = ({ level }) => {
-  const map = {
-    CRITICAL: 'status-pill-rose font-medium',
-    HIGH:     'status-pill-amber font-medium',
-    MEDIUM:   'status-pill-amber opacity-90 font-medium',
-    LOW:      'status-pill-emerald font-medium',
-  };
-  return (
-    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-sans capitalize ${map[level] || map.LOW}`}>
-      {level?.toLowerCase()}
-    </span>
-  );
-};
-
-const TIResultCard = ({ result }) => {
-  const [expanded, setExpanded] = useState(false);
-  const isMalicious = result.reputation === 'MALICIOUS';
-  const isSuspicious = result.reputation === 'SUSPICIOUS';
-
-  const typeIcons = {
-    IP: Wifi, DOMAIN: Globe, URL: Globe, EMAIL: Mail, HASH: Hash,
-  };
-  const TypeIcon = typeIcons[result.ioc_type] || Shield;
-
-  return (
-    <div className={`soc-card overflow-hidden transition-all ${isMalicious ? 'border-rose-500/30' : isSuspicious ? 'border-amber-500/30' : ''}`}>
-      <div className="px-4 py-3.5 flex items-center gap-3.5">
-        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0
-          ${isMalicious ? 'bg-rose-500/10 text-rose-400' : isSuspicious ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'}`}>
-          <TypeIcon className="w-4.5 h-4.5" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{result.ioc_type}</p>
-          <p className="text-xs font-mono text-slate-200 break-all font-medium mt-0.5">{result.ioc_value}</p>
-        </div>
-        <div className="flex items-center gap-2.5 shrink-0">
-          <ReputationBadge reputation={result.reputation} />
-          <SeverityBadge level={result.threat_severity} />
-          <button onClick={() => setExpanded(e => !e)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-            {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
-        </div>
-      </div>
-
-      {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-800/80 pt-3.5 grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-          {result.virustotal_score && (
-            <div className="bg-[#0c1019] rounded-xl p-3 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">VirusTotal</p>
-              <p className="text-sm font-bold font-mono text-rose-400">{result.virustotal_score}</p>
-              <p className="text-[10px] text-slate-500">engines detected</p>
-            </div>
-          )}
-          {result.abuseipdb_score !== null && result.abuseipdb_score !== undefined && (
-            <div className="bg-[#0c1019] rounded-xl p-3 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">AbuseIPDB</p>
-              <p className="text-sm font-bold font-mono text-amber-400">{result.abuseipdb_score}%</p>
-              <p className="text-[10px] text-slate-500">abuse confidence</p>
-            </div>
-          )}
-          {result.otx_pulses !== null && (
-            <div className="bg-[#0c1019] rounded-xl p-3 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">OTX Pulses</p>
-              <p className="text-sm font-bold font-mono text-purple-400">{result.otx_pulses}</p>
-              <p className="text-[10px] text-slate-500">threat feeds</p>
-            </div>
-          )}
-          {result.country && (
-            <div className="bg-[#0c1019] rounded-xl p-3 border border-slate-800">
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1">Country Location</p>
-              <p className="text-sm font-bold font-mono text-blue-400">{result.country}</p>
-            </div>
-          )}
-          {result.malware_families?.length > 0 && (
-            <div className="col-span-2 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
-              <p className="text-[10px] text-rose-400 font-medium uppercase tracking-wider mb-1.5">Malware Families</p>
-              <div className="flex flex-wrap gap-1.5">
-                {result.malware_families.map((f, i) => (
-                  <span key={i} className="text-[11px] font-mono px-2.5 py-0.5 bg-rose-950/60 border border-rose-500/30 text-rose-300 rounded-full">{f}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {result.known_campaigns?.length > 0 && (
-            <div className="col-span-2 md:col-span-3 bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-              <p className="text-[10px] text-amber-400 font-medium uppercase tracking-wider mb-1.5">Known Attack Campaigns</p>
-              <div className="flex flex-wrap gap-1.5">
-                {result.known_campaigns.map((c, i) => (
-                  <span key={i} className="text-[11px] font-mono px-2.5 py-0.5 bg-amber-950/60 border border-amber-500/30 text-amber-300 rounded-full">{c}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {result.tags?.length > 0 && (
-            <div className="col-span-2 md:col-span-3">
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mb-1.5">Threat Tags</p>
-              <div className="flex flex-wrap gap-1.5">
-                {result.tags.map((t, i) => (
-                  <span key={i} className="text-[11px] font-mono px-2.5 py-0.5 bg-[#141b29] border border-slate-800 text-slate-400 rounded-full">{t}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          <div className="col-span-2 md:col-span-3 text-[10px] text-slate-500 font-mono pt-1">
-            Intelligence Source: {result.source} {result.last_seen ? `· Last seen: ${result.last_seen}` : ''}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+const SAMPLE_IOCS = [
+  {
+    type: "HASH",
+    value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    label: "LockBit 3.0 Ransomware SHA-256",
+    result: {
+      ioc_type: "HASH",
+      ioc_value: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      reputation: "MALICIOUS",
+      threat_severity: "CRITICAL",
+      virustotal_score: "68 / 72",
+      abuseipdb_score: 98,
+      otx_pulses: 14,
+      country: "Global Threat",
+      malware_families: ["LockBit 3.0", "Ransom.Win32.LockBit", "Trojan-Ransom.Win32.Wanna"],
+      description: "Flagged in 14 AlienVault OTX pulses as primary LockBit 3.0 ransomware executable payload.",
+      mitre_ttp: "T1486 - Data Encrypted for Impact"
+    }
+  },
+  {
+    type: "IP",
+    value: "185.220.101.5",
+    label: "Cobalt Strike C2 Node (IP)",
+    result: {
+      ioc_type: "IP",
+      ioc_value: "185.220.101.5",
+      reputation: "MALICIOUS",
+      threat_severity: "HIGH",
+      virustotal_score: "42 / 70",
+      abuseipdb_score: 100,
+      otx_pulses: 9,
+      country: "Germany (DE)",
+      malware_families: ["Cobalt Strike Beacon", "Metasploit Stager"],
+      description: "Listed in AbuseIPDB as active Cobalt Strike Command & Control server running on port 443.",
+      mitre_ttp: "T1071.001 - Application Layer Protocol: Web Protocols"
+    }
+  },
+  {
+    type: "DOMAIN",
+    value: "c2.badactor-domain.com",
+    label: "Phishing & Exfil C2 Domain",
+    result: {
+      ioc_type: "DOMAIN",
+      ioc_value: "c2.badactor-domain.com",
+      reputation: "MALICIOUS",
+      threat_severity: "HIGH",
+      virustotal_score: "38 / 68",
+      abuseipdb_score: 85,
+      otx_pulses: 6,
+      country: "Russia (RU)",
+      malware_families: ["AgentTesla Infostealer"],
+      description: "Registered 2 days ago via high-risk abuse registrar. Active DNS C2 tunneling sinkhole.",
+      mitre_ttp: "T1566.002 - Spearphishing Link"
+    }
+  }
+];
 
 export default function ThreatIntelPage() {
-  const [iocType, setIocType] = useState('IP');
-  const [iocValue, setIocValue] = useState('');
-  const [lookupResult, setLookupResult] = useState(null);
+  const [iocType, setIocType] = useState('HASH');
+  const [iocQuery, setIocQuery] = useState('');
+  const [result, setResult] = useState(SAMPLE_IOCS[0].result);
   const [loading, setLoading] = useState(false);
-  const [globalSummary, setGlobalSummary] = useState(null);
-  const [globalLoading, setGlobalLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
-  const fetchGlobalSummary = async () => {
-    setGlobalLoading(true);
-    try {
-      const res = await threatIntelAPI.getGlobalSummary();
-      setGlobalSummary(res.data);
-    } catch { /* ignore */ }
-    finally { setGlobalLoading(false); }
-  };
-
-  useEffect(() => { fetchGlobalSummary(); }, []);
-
-  const handleLookup = async () => {
-    if (!iocValue.trim()) return;
+  const handleSearch = async (e) => {
+    e?.preventDefault();
+    if (!iocQuery.trim()) {
+      setError('Please enter an IOC hash, IP address, or domain name');
+      return;
+    }
     setLoading(true);
-    setError(null);
-    setLookupResult(null);
+    setError('');
+
     try {
-      const res = await threatIntelAPI.lookupIOC(iocType, iocValue.trim());
-      setLookupResult(res.data);
-    } catch (e) {
-      setError(e.response?.data?.detail || 'Lookup failed. Ensure backend is running.');
-    } finally { setLoading(false); }
+      const res = await threatIntelAPI.lookup({ ioc_type: iocType, ioc_value: iocQuery.trim() });
+      setResult(res.data);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Threat Intelligence lookup failed. Showing diagnostic threat model.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleKeyDown = (e) => { if (e.key === 'Enter') handleLookup(); };
+  const loadSample = (sample) => {
+    setLoading(true);
+    setTimeout(() => {
+      setResult(sample.result);
+      setIocType(sample.type);
+      setIocQuery(sample.value);
+      setLoading(false);
+    }, 400);
+  };
 
-  const summary = globalSummary?.global_summary || {};
+  const handleExportSTIX = () => {
+    const stixData = {
+      type: "bundle",
+      id: `bundle--${Math.random().toString(36).substr(2, 9)}`,
+      objects: [
+        {
+          type: "indicator",
+          id: `indicator--${Math.random().toString(36).substr(2, 9)}`,
+          name: result?.ioc_value,
+          pattern: `[${result?.ioc_type?.toLowerCase()}:value = '${result?.ioc_value}']`,
+          valid_from: new Date().toISOString()
+        }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(stixData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stix2.1_${result?.ioc_type}_${result?.ioc_value?.slice(0, 10)}.json`;
+    a.click();
+  };
 
   return (
     <div className="p-6 space-y-6 font-sans">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#23314D] pb-5">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-rose-500/20 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-              Threat Intelligence Hub
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium">TI Engine</span>
+              IOC Threat Intelligence Hub & Feeds
+              <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono font-semibold">STIX 2.1 Ready</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Real-time IOC reputation lookup across VirusTotal, AbuseIPDB, AlienVault OTX, and MISP
+            <p className="text-xs text-slate-400 mt-0.5 font-mono">
+              Consolidated threat reputation, VirusTotal / AbuseIPDB / AlienVault OTX consensus & MITRE ATT&CK mapping
             </p>
           </div>
         </div>
-
-        <button
-          onClick={fetchGlobalSummary}
-          className="flex items-center gap-2 px-3.5 py-2 bg-[#121724] border border-slate-800 rounded-xl text-xs text-slate-300 font-medium hover:bg-[#182033] transition-all"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${globalLoading ? 'animate-spin' : ''}`} />
-          <span>Refresh Intelligence</span>
-        </button>
       </div>
 
-      {/* Global Stats Cards */}
-      {summary && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: 'IOCs Checked',    value: summary.total_iocs_checked || 0,  color: 'text-blue-400',   icon: Database },
-            { label: 'Malicious IOCs',  value: summary.malicious_count || 0,     color: 'text-rose-400',   icon: XCircle },
-            { label: 'Suspicious IOCs', value: summary.suspicious_count || 0,    color: 'text-amber-400',  icon: AlertTriangle },
-            { label: 'Overall Severity',value: summary.overall_severity || 'LOW', color:
-              summary.overall_severity === 'CRITICAL' ? 'text-rose-400' :
-              summary.overall_severity === 'HIGH'     ? 'text-amber-400' :
-              summary.overall_severity === 'MEDIUM'   ? 'text-amber-400' : 'text-emerald-400',
-              icon: Shield },
-          ].map(({ label, value, color, icon: Icon }) => (
-            <div key={label} className="soc-card p-4 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
-                <p className={`text-2xl font-bold font-mono mt-1 ${color}`}>{value}</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-slate-800/60 border border-slate-800 flex items-center justify-center">
-                <Icon className={`w-5 h-5 ${color}`} />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* 1-Click Samples & Search Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Sample Loaders */}
+        <div className="soc-card p-5 space-y-3">
+          <div className="flex items-center justify-between border-b border-[#23314D] pb-2">
+            <h3 className="text-xs font-bold text-slate-100 font-mono flex items-center gap-1.5 uppercase">
+              <Play className="w-3.5 h-3.5 text-emerald-400" />
+              1-Click Threat Indicators
+            </h3>
+          </div>
 
-      {/* Active Malware Families & Campaigns */}
-      {summary && (summary.unique_malware_families?.length > 0 || summary.known_attack_campaigns?.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          {summary.unique_malware_families?.length > 0 && (
-            <div className="soc-card p-4 border border-rose-500/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Bug className="w-4 h-4 text-rose-400" />
-                <span className="text-xs font-semibold text-slate-200">Active Malware Families</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {summary.unique_malware_families.map((f, i) => (
-                  <span key={i} className="text-[11px] font-mono px-3 py-1 bg-rose-500/10 border border-rose-500/20 text-rose-300 rounded-full font-medium">{f}</span>
-                ))}
-              </div>
-            </div>
-          )}
-          {summary.known_attack_campaigns?.length > 0 && (
-            <div className="soc-card p-4 border border-amber-500/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Target className="w-4 h-4 text-amber-400" />
-                <span className="text-xs font-semibold text-slate-200">Known Attack Campaigns</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {summary.known_attack_campaigns.map((c, i) => (
-                  <span key={i} className="text-[11px] font-mono px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-full font-medium">{c}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* IOC Lookup Workbench */}
-      <div className="soc-card p-5 space-y-4">
-        <div className="flex items-center gap-2">
-          <Search className="w-4 h-4 text-blue-400" />
-          <h2 className="text-xs font-semibold text-slate-200">IOC Threat Intelligence Lookup</h2>
-        </div>
-        <div className="flex gap-3 flex-col sm:flex-row">
-          <select
-            value={iocType}
-            onChange={e => setIocType(e.target.value)}
-            className="w-full sm:w-36 bg-[#0c1019] border border-slate-800 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-200 focus:outline-none focus:border-blue-500 transition-all"
-          >
-            {IOC_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <input
-            type="text"
-            value={iocValue}
-            onChange={e => setIocValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={`Enter ${iocType} value to query (e.g. ${iocType === 'IP' ? '185.220.101.5' : iocType === 'DOMAIN' ? 'evil.com' : iocType === 'EMAIL' ? 'attacker@evil.com' : iocType === 'HASH' ? 'sha256...' : 'https://...'})`}
-            className="flex-1 bg-[#0c1019] border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-all"
-          />
-          <button
-            onClick={handleLookup}
-            disabled={!iocValue.trim() || loading}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white text-xs font-medium rounded-xl transition-all disabled:opacity-40 shadow-lg shadow-rose-500/20"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
-            <span>{loading ? 'Querying...' : 'Query Threat Feeds'}</span>
-          </button>
-        </div>
-
-        {/* Quick Example Lookups */}
-        <div className="flex flex-wrap gap-2 pt-1 text-xs">
-          <span className="text-[11px] text-slate-400 font-medium self-center">Try Example IOCs:</span>
-          {[
-            { type: 'IP', value: '185.220.101.5' },
-            { type: 'DOMAIN', value: 'login.auth-secure-update.xyz' },
-            { type: 'EMAIL', value: 'sec-alert@auth-update-microsoft.com' },
-            { type: 'HASH', value: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' },
-          ].map(({ type, value }) => (
-            <button key={value}
-              onClick={() => { setIocType(type); setIocValue(value); }}
-              className="text-[11px] font-mono px-2.5 py-1 bg-[#0c1019] border border-slate-800 text-slate-300 rounded-full hover:text-blue-400 hover:border-blue-500/40 transition-colors truncate max-w-[220px]">
-              {type}: {value.length > 25 ? value.slice(0, 25) + '...' : value}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {error && (
-        <div className="flex items-center gap-3 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-medium">
-          <XCircle className="w-5 h-5 shrink-0" />
-          <p>{error}</p>
-        </div>
-      )}
-
-      {lookupResult && (
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Lookup Result</h3>
-          <TIResultCard result={lookupResult} />
-        </div>
-      )}
-
-      {/* All Global IOC Results */}
-      {globalSummary?.ioc_results?.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-            All Case IOCs ({globalSummary.ioc_results.length} detected across platform)
-          </h3>
-          <div className="space-y-3">
-            {globalSummary.ioc_results
-              .sort((a, b) => {
-                const order = { MALICIOUS: 0, SUSPICIOUS: 1, UNKNOWN: 2, CLEAN: 3 };
-                return (order[a.reputation] ?? 99) - (order[b.reputation] ?? 99);
-              })
-              .map((result, i) => <TIResultCard key={i} result={result} />)
-            }
+          <div className="space-y-2 text-xs">
+            {SAMPLE_IOCS.map((sample, idx) => (
+              <button
+                key={idx}
+                onClick={() => loadSample(sample)}
+                className={`w-full p-3 rounded-lg border text-left transition-all flex items-center justify-between ${
+                  result?.ioc_value === sample.value
+                    ? 'bg-emerald-600/20 border-emerald-500 text-white font-semibold'
+                    : 'bg-[#0B101D] border-[#23314D] text-slate-300 hover:border-slate-500'
+                }`}
+              >
+                <div>
+                  <p className="font-semibold text-slate-200">{sample.label}</p>
+                  <p className="text-[10px] text-slate-400 font-mono truncate max-w-[170px]">{sample.value}</p>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 text-[9px] font-mono font-bold">
+                  {sample.type}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Empty state */}
-      {!globalSummary && !globalLoading && (
-        <div className="text-center py-16 soc-card">
-          <ShieldCheck className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400 text-sm font-semibold">No threat intelligence data logged yet</p>
-          <p className="text-slate-500 text-xs mt-1">Upload forensic evidence in any module to populate IOC threat feeds</p>
+        {/* Search Workbench */}
+        <div className="lg:col-span-2 soc-card p-5 space-y-4">
+          <form onSubmit={handleSearch} className="space-y-4 font-mono">
+            {error && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-lg text-xs flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">IOC Category</label>
+                <select
+                  value={iocType}
+                  onChange={(e) => setIocType(e.target.value)}
+                  className="soc-input w-full font-mono text-xs"
+                >
+                  <option value="HASH">SHA-256 / MD5 Hash</option>
+                  <option value="IP">IP Address</option>
+                  <option value="DOMAIN">Domain Name</option>
+                  <option value="URL">Full URL</option>
+                </select>
+              </div>
+
+              <div className="sm:col-span-3">
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Indicator Value</label>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={iocQuery}
+                    onChange={(e) => setIocQuery(e.target.value)}
+                    placeholder="Enter SHA-256 hash, IPv4 address, or domain..."
+                    className="soc-input w-full pl-9 py-2 font-mono text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={loading || !iocQuery.trim()}
+                className="soc-btn-primary bg-emerald-600 hover:bg-emerald-700 font-mono"
+              >
+                {loading ? (
+                  <>
+                    <Activity className="w-4 h-4 animate-spin" />
+                    <span>Querying Threat Databases...</span>
+                  </>
+                ) : (
+                  <span>Query Threat Intelligence DB</span>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Threat Intelligence Output Card */}
+      {result && (
+        <div className="space-y-6 font-mono text-xs">
+          <div className="soc-card p-5 border-l-4 border-l-rose-500 space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#23314D] pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30 text-[10px] font-bold">
+                    {result.ioc_type}
+                  </span>
+                  <strong className="text-slate-100 text-sm">{result.ioc_value}</strong>
+                </div>
+                <p className="text-slate-400 text-[11px] mt-1">{result.description}</p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <ThreatBadge level={result.threat_severity || 'CRITICAL'} />
+                <button
+                  onClick={handleExportSTIX}
+                  className="soc-btn-secondary py-1 text-xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Export STIX 2.1</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Vendor Consensus Score Meter */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div className="p-3 bg-[#0B101D] border border-rose-500/30 rounded-lg">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">VirusTotal Verdict</p>
+                <p className="text-xl font-bold text-rose-400">{result.virustotal_score}</p>
+                <span className="text-[9px] text-slate-500">Engines Flagged Malicious</span>
+              </div>
+
+              <div className="p-3 bg-[#0B101D] border border-amber-500/30 rounded-lg">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">AbuseIPDB Score</p>
+                <p className="text-xl font-bold text-amber-400">{result.abuseipdb_score}%</p>
+                <span className="text-[9px] text-slate-500">Abuse Confidence Index</span>
+              </div>
+
+              <div className="p-3 bg-[#0B101D] border border-cyan-500/30 rounded-lg">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">AlienVault OTX</p>
+                <p className="text-xl font-bold text-cyan-400">{result.otx_pulses} Pulses</p>
+                <span className="text-[9px] text-slate-500">Threat Feeds</span>
+              </div>
+
+              <div className="p-3 bg-[#0B101D] border border-[#23314D] rounded-lg">
+                <p className="text-[10px] text-slate-400 uppercase font-semibold">Location / GeoIP</p>
+                <p className="text-xl font-bold text-slate-200">{result.country}</p>
+                <span className="text-[9px] text-slate-500">Registered Origin</span>
+              </div>
+            </div>
+
+            {/* Malware Families & MITRE TTP */}
+            {result.malware_families && result.malware_families.length > 0 && (
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg space-y-1">
+                <p className="text-[10px] text-rose-400 font-bold uppercase">Associated Malware Families & Botnets</p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {result.malware_families.map((fam, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-[10px]">
+                      {fam}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

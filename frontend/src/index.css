@@ -1,111 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --navy-primary: #0F172A;
-    --navy-surface: #1E293B;
-    --off-white: #F8FAFC;
-    --cream-surface: #FFFFFF;
-    --burgundy-accent: #7F1D1D;
-    --emerald-accent: #064E3B;
-    --border-corporate: #E2E8F0;
+    --soc-bg: #080C14;
+    --soc-surface: #0F172A;
+    --soc-card: #131B2E;
+    --soc-card-hover: #18233C;
+    --soc-border: #23314D;
+    --soc-border-subtle: #1B273E;
+    --soc-blue: #2563EB;
+    --soc-cyan: #06B6D4;
+    --soc-emerald: #10B981;
+    --soc-amber: #F59E0B;
+    --soc-rose: #EF4444;
   }
 
   * {
     -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
   }
 
   body {
-    @apply bg-[#F8FAFC] text-slate-900 font-sans antialiased overflow-x-hidden min-h-screen selection:bg-slate-900 selection:text-white;
-    font-family: 'Plus Jakarta Sans', 'IBM Plex Sans', system-ui, sans-serif;
+    background-color: #080C14;
+    color: #F1F5F9;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, .font-serif-heading {
-    font-family: 'Playfair Display', 'Merriweather', Georgia, serif;
+  /* Code & Technical Data Monospace */
+  code, pre, .font-mono, .soc-mono {
+    font-family: 'Fira Code', 'Courier New', monospace;
   }
 
-  /* Prevent text selection on navigation & UI controls */
-  button, a, nav, header, aside, select, label, .no-select {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-
-  /* Allow text selection in code, input, and technical data cells */
-  input, textarea, code, pre, td, .selectable-text {
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-    user-select: text;
-  }
-
-  /* Executive scrollbars */
+  /* Custom Professional Dark Scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #F1F5F9;
+    background: #080C14;
   }
   ::-webkit-scrollbar-thumb {
-    background: #94A3B8;
-    border-radius: 9999px;
+    background: #23314D;
+    border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #0F172A;
+    background: #3b82f6;
   }
 }
 
-/* Corporate Executive Card Containers (Light Mode Authority Layout) */
-.soc-card, .cyber-card, .corporate-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 0.875rem;
-  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
+/* Custom SOC Enterprise UI Utility Components */
+@layer components {
+  /* High Density SOC Card Container */
+  .soc-card {
+    background-color: #0F172A;
+    border: 1px solid #23314D;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
 
-.soc-card-interactive {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 0.875rem;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.soc-card-interactive:hover {
-  border-color: #0F172A;
-  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
-  transform: translateY(-1px);
-}
+  .soc-card-interactive {
+    background-color: #0F172A;
+    border: 1px solid #23314D;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease-in-out;
+  }
+  .soc-card-interactive:hover {
+    border-color: #3b82f6;
+    background-color: #131B2E;
+    box-shadow: 0 8px 30px -4px rgba(37, 99, 235, 0.15);
+    transform: translateY(-1px);
+  }
 
-/* Tool Dashboard Navy Containers (For Technical Tool Workbenches) */
-.navy-card {
-  background: #0F172A;
-  border: 1px solid #1E293B;
-  color: #F8FAFC;
-  border-radius: 0.875rem;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-}
+  /* High Contrast Data Table */
+  .soc-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .soc-table th {
+    background-color: #0B101D;
+    color: #94A3B8;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid #23314D;
+  }
+  .soc-table td {
+    padding: 0.75rem 0.875rem;
+    border-bottom: 1px solid #1B273E;
+    font-size: 0.75rem;
+    color: #E2E8F0;
+  }
+  .soc-table tr:hover td {
+    background-color: #131B2E;
+  }
 
-/* Executive Status Badges */
-.status-pill-emerald {
-  @apply bg-[#064E3B]/10 text-[#064E3B] border border-[#064E3B]/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
-}
-.status-pill-rose, .status-pill-burgundy {
-  @apply bg-[#7F1D1D]/10 text-[#7F1D1D] border border-[#7F1D1D]/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
-}
-.status-pill-amber {
-  @apply bg-amber-500/10 text-amber-800 border border-amber-500/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
-}
-.status-pill-blue, .status-pill-navy {
-  @apply bg-[#0F172A]/10 text-[#0F172A] border border-[#0F172A]/30 px-3 py-0.5 rounded-full font-sans text-xs font-semibold tracking-wide inline-flex items-center gap-1.5;
-}
+  /* Status Badges */
+  .soc-badge-emerald {
+    @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold inline-flex items-center gap-1.5;
+  }
+  .soc-badge-rose {
+    @apply bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold inline-flex items-center gap-1.5;
+  }
+  .soc-badge-amber {
+    @apply bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold inline-flex items-center gap-1.5;
+  }
+  .soc-badge-blue {
+    @apply bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold inline-flex items-center gap-1.5;
+  }
+  .soc-badge-cyan {
+    @apply bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold inline-flex items-center gap-1.5;
+  }
+  .soc-badge-slate {
+    @apply bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-semibold inline-flex items-center gap-1.5;
+  }
 
-/* Input Focus Styles */
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: #0F172A !important;
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.15) !important;
+  /* Form Control Inputs */
+  .soc-input {
+    background-color: #0B101D;
+    border: 1px solid #23314D;
+    border-radius: 0.5rem;
+    color: #F8FAFC;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    transition: all 0.15s ease;
+  }
+  .soc-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Primary SOC Button */
+  .soc-btn-primary {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .soc-btn-primary:hover {
+    background-color: #1D4ED8;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .soc-btn-secondary {
+    background-color: #1E293B;
+    border: 1px solid #23314D;
+    color: #E2E8F0;
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .soc-btn-secondary:hover {
+    background-color: #2D3D5A;
+    border-color: #3b82f6;
+    color: #FFFFFF;
+  }
 }
